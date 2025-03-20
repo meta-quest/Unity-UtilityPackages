@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68315f4b8267ce74f92a17b327a478bb, type: 3}
+  m_Name: RainData
+  m_EditorClassIdentifier: 
+  m_rainWind_Tiling: {x: 0.2, y: 0.2}
+  m_puddleWetness_Amount: 0.8
+  m_windPuddle_Distortion: -0.09
+  m_rain_Traisition: 0
+  m_puddle_Tiling: -0.19
+  m_rainWindNormal_Strength: 1
+  m_rainWaveNormalwave_Splashs: {x: 1, y: 0}
+  m_rainWind_Direction: {x: 0, y: 0}
+  m_rippleColor_Strength: 0
+  m_ripple_Roughness: 0.5
+  m_rippleDistortion_Intensity: 5
+  m_ripplePosition_Offset: 0.2
+  m_rippleScatter_Density_1: 4.43
+  m_rippleScatter_Density_2: 3.48
+  m_ripple_Speed: 1
+  m_generate_Ripples_Seeds_1: {x: 8, y: 6, z: 61, w: 108}
+  m_generate_Ripples_Seeds_2: {x: 8, y: 6, z: 61, w: 108}
+  m_rippleUV_Offset: {x: 0, y: 0}
+  m_ripple_Strength: 0.001
+  m_ripple_Frequency_2: 5.41
+  m_ripple_Frequency_1: 9.55
+  m_ripple_Thickness: 10
+  m_fade_Mask: 1
+  m_ripple_Look: {x: -10.04, y: 1.96}
+  m_max_Distance: -1
+  m_minDistance_Offset: 11.7
+  m_power: 1

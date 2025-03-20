@@ -1,0 +1,293 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Base Sky
+  m_Shader: {fileID: -6465566751694194690, guid: 818046b3161aedc4281bd266e54b7264,
+    type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap:
+    RenderType: Opaque
+  disabledShaderPasses:
+  - SHADOWCASTER
+  - DepthOnly
+  m_LockedProperties: _AlphaClip _CastShadows _Cull _Star_Texture _ZTest _ZWriteControl
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Celestial_Normal_Map:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Celestial_Texture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Cloud_Normal:
+        m_Texture: {fileID: 2800000, guid: eb57cc4bf738f3d45af0d7c22109e311, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Cloud_Texture:
+        m_Texture: {fileID: 2800000, guid: 5112946cc6a3e324e9237ed7ee75861b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_565494c2720d46e29d835f6d83aaaf53_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 6794a0f9e20f3ff488a0a6778c05c1ba, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_5df1959e6cc1443cae64e978d2b4f7b8_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: c09fcf801596e484c9319f91335ea237, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_7ef17e5b8f7646ca898c812fd5b9cae3_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 6287cb9dc91c93243b6037df5a3953f3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_b5d46456feb443a8be22a6d93f8f0252_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: c09fcf801596e484c9319f91335ea237, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SpecGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Star_Texture:
+        m_Texture: {fileID: 2800000, guid: 40e3f002f961a6949b5dcbf62ae4d01a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Sun_Normal_Map:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Sun_Texture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture2D:
+        m_Texture: {fileID: 2800000, guid: 3f035349cabc55c46a7b52a323d27330, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AlphaClip: 0
+    - _AlphaToMask: 0
+    - _Anisotropy: 0.944
+    - _Back_Scatter: 0.5
+    - _Back_Scatter_Level: 0
+    - _Back_Scatter_Power: 0.46
+    - _Blend: 0
+    - _BlendModePreserveSpecular: 1
+    - _BumpScale: 1
+    - _CastShadows: 0
+    - _Celestial_Edge_Fade: 0.5
+    - _Celestial_Light_Pitch: 0
+    - _Celestial_Light_Yaw: 0
+    - _ClearCoatMask: 0
+    - _ClearCoatSmoothness: 0
+    - _Cloud_Ambient: 0.83
+    - _Cloud_Blend_Offset: 0.27
+    - _Cloud_Blend_Power: 2
+    - _Cloud_Curvature: 0.875
+    - _Cloud_Direction: 0.247
+    - _Cloud_Edge: 0.41
+    - _Cloud_Height: -0.16
+    - _Cloud_Normal_Strength: 1
+    - _Cloud_Offset: 0.925
+    - _Cloud_Opacity: 0
+    - _Cloud_Opacity_Offset: -0.45
+    - _Cloud_Opacity_Scale: 1.27
+    - _Cloud_Scale: 2.85
+    - _Cloud_Scatter: 4
+    - _Cloud_Speed: 0.001
+    - _Cloud_Threshold: 0.118
+    - _Cloud_Turbulence: -0.25
+    - _Cull: 2
+    - _Cutoff: 0.5
+    - _DetailAlbedoMapScale: 1
+    - _DetailNormalMapScale: 1
+    - _DstBlend: 0
+    - _DstBlendAlpha: 0
+    - _ENABLESTARS: 0
+    - _EnvironmentReflections: 1
+    - _FogHeight: 25
+    - _Fog_Offset: 0
+    - _Fog_Power: 12
+    - _Front_Scatter: 0.85
+    - _Front_Scatter_Level: 0
+    - _Front_Scatter_Power: 0.802
+    - _GlossMapScale: 0
+    - _Glossiness: 0
+    - _GlossyReflections: 0
+    - _Height: 0.786
+    - _HorizonHeight: 0.352
+    - _IS_CELESTIAL_OBJECT: 0
+    - _IS_SUN_DISK: 0
+    - _Metallic: 0
+    - _OcclusionStrength: 1
+    - _Parallax: 0.005
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _Radius: 9.69
+    - _ReceiveShadows: 1
+    - _Roundness: 0.316
+    - _Scatter_Blend: 0.5
+    - _SkyCloudEdge: 0.2
+    - _SkyCloudHeight: 0.1
+    - _SkyCloudOpacity: 0.5
+    - _SkyFogHeight: 25
+    - _SkyFogOpacity: 1
+    - _SkyGradientOffset: 0.266
+    - _SkyGradientScale: 0.819
+    - _SkyHorizonHeight: 0.35
+    - _SkyStarDensity: 17.38
+    - _SkyStarOpacity: 0
+    - _SkySunOpacity: 1
+    - _SkySunSize: 0.05
+    - _SkySunSmoothStep: 0.075
+    - _Sky_Blend_Offset: 0.15
+    - _Sky_Blend_Power: 2
+    - _Smoothness: 0.5
+    - _SmoothnessTextureChannel: 0
+    - _SpecularHighlights: 1
+    - _SrcBlend: 1
+    - _SrcBlendAlpha: 1
+    - _StarDensity: 17.38
+    - _Star_Opacity: 0
+    - _Star_Power: 100
+    - _Star_Scale: 1
+    - _Sun_Light_Pitch: 0
+    - _Sun_Light_Yaw: 0
+    - _Sun_Opacity: 0.908
+    - _Sun_Size: 0.0015
+    - _Sun_Smooth_Step: 0.111
+    - _Sun_Softness: 1
+    - _Surface: 0
+    - _USE_UNDERWATER_FOG: 0
+    - _WorkflowMode: 1
+    - _ZTest: 4
+    - _ZWrite: 0
+    - _ZWriteControl: 2
+    m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Celestial_Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Celestial_Light_Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Cloud_Ambient: {r: 0.23846872, g: 0.3347734, b: 0.587, a: 1}
+    - _Cloud_Back_Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Cloud_Horizon_Color: {r: 0.817, g: 0.817, b: 0.817, a: 1}
+    - _Cloud_Min_Max: {r: 0.19, g: 1, b: 0, a: 0}
+    - _Cloud_Speed: {r: 0.001, g: 0.0013, b: 0, a: 0}
+    - _Cloud_Sun_Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Cloud_Tiling_01: {r: 1, g: 1, b: 0, a: 0}
+    - _Cloud_Tiling_02: {r: 6, g: 3, b: 0, a: 0}
+    - _Cloud_Zenith_Color: {r: 5.656854, g: 5.656854, b: 5.656854, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color01: {r: 0.02352941, g: 0.85132974, b: 1, a: 1}
+    - _Color02: {r: 0.16169535, g: 0.02352941, b: 1, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Ground_Color: {r: 0.2952174, g: 0.3195652, b: 0.35, a: 1}
+    - _HorizonColor: {r: 1, g: 1, b: 1, a: 1}
+    - _MidHorizonColor: {r: 0, g: 0.60335493, b: 1, a: 1}
+    - _SkyBaseColor: {r: 0.56, g: 0.6981905, b: 1, a: 1}
+    - _SkyCloudDarkColor: {r: 0.47058827, g: 0.47450984, b: 0.8980393, a: 1}
+    - _SkyCloudLightColor: {r: 1.9117346, g: 2.5525312, b: 3.9094775, a: 1}
+    - _SkyCloudMidColor: {r: 0.56078434, g: 0.69803923, b: 1, a: 1}
+    - _SkyCloudTiling01: {r: 5, g: 3, b: 0, a: 0}
+    - _SkyCloudTiling02: {r: 6, g: 3, b: 0, a: 0}
+    - _SkyGradientOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _SkyGradientScale: {r: 1.08, g: 1, b: 0, a: 0}
+    - _SkyHighColor: {r: 0.35500002, g: 0.51244086, b: 1, a: 1}
+    - _SkyHorizonColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SkyMidHorizonColor: {r: 0.067658804, g: 0.65784734, b: 0.9529412, a: 1}
+    - _SkySunColor: {r: 1, g: 0.91305727, b: 0.468, a: 1}
+    - _SkyWindSpeed: {r: 0.5, g: 0, b: 0, a: 0}
+    - _Sky_Color: {r: 0.37264144, g: 0.6971664, b: 1, a: 1}
+    - _Sky_Horizon_Color: {r: 0.5685843, g: 0.7504221, b: 0.96862745, a: 1}
+    - _Sky_Zenith_Color: {r: 0.29489398, g: 0.47616044, b: 0.774, a: 1}
+    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _Star_Color: {r: 0, g: 0, b: 0, a: 1}
+    - _SunColor: {r: 3.5648687, g: 3.5648687, b: 3.5648687, a: 1}
+    - _Sun_Color: {r: 72.65929, g: 47.920303, b: 28.264462, a: 1}
+    - _Sun_Light_Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Underwater_Fog_Height_Offset: {r: 0, g: 0, b: 0, a: 0}
+    - _Upper_Sky_Color: {r: 0.17849922, g: 0, b: 1, a: 1}
+    - _Vector4: {r: 0, g: 0, b: 0, a: 0}
+    - _Wind_Speed: {r: 2, g: 0, b: 0, a: 0}
+    - _bottom_Sky_Color: {r: 0.02352941, g: 0.8609517, b: 1, a: 1}
+  m_BuildTextureStacks: []
+--- !u!114 &1130983063974069177
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 7
