@@ -39,7 +39,7 @@ namespace Meta.Utilities.Editor
             EditorApplication.delayCall += () => import.Invoke(Selection.objects);
         }
 
-        [MenuItem("Tools/Identify Missing References (via git)")]
+        [MenuItem("Tools/Clean-up/Identify Missing References (via git)", priority = BuildTools.MenuPriority)]
         public static async void IdentifyMissingReferences()
         {
             var source = new TaskCompletionSource<IList<SearchItem>>();
@@ -153,7 +153,7 @@ namespace Meta.Utilities.Editor
 
         private static string GetRegexCapture(Regex fileRegex, string result) => fileRegex.Match(result)?.Groups?.Skip(1)?.FirstOrDefault()?.Value;
 
-        [MenuItem("Tools/Fix Incorrect Asset Names")]
+        [MenuItem("Tools/Clean-up/Fix Incorrect Asset Names", priority = BuildTools.MenuPriority)]
         public static async void FixIncorrectAssetNames()
         {
             var assetPaths = AssetDatabase.GetAllAssetPaths().Where(p => p.StartsWith("Assets/")).ToArray();
@@ -166,7 +166,13 @@ namespace Meta.Utilities.Editor
                     if (DisplayCancelableProgressBar("Fixing incorrect asset names...", assetPath, i * 1.0f / assetPaths.Length))
                         break;
 
+                    if (!assetPath.EndsWith("asset") && !assetPath.EndsWith("prefab"))
+                        continue;
+
                     var asset = AssetDatabase.LoadMainAssetAtPath(assetPath);
+                    if (asset == null)
+                        continue;
+
                     var mainObjectName = asset.name;
                     var expectedMainObjectName = Path.GetFileNameWithoutExtension(assetPath);
 

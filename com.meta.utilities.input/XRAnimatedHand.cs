@@ -2,8 +2,6 @@
 
 #if HAS_META_AVATARS
 
-using Meta.Utilities;
-using Meta.Utilities.Input;
 using UnityEngine;
 using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit;

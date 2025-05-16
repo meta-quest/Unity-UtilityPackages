@@ -63,7 +63,7 @@ namespace Meta.Utilities.Editor
             var scene = GetActiveScenes().FirstOrDefault(s => s.path == path);
             var wasValid = scene.IsValid();
             var wasLoaded = scene.isLoaded;
-            
+
             var packInfo = UnityEditor.PackageManager.PackageInfo.FindForAssetPath(path);
             if (packInfo == null)
             {
@@ -131,10 +131,12 @@ namespace Meta.Utilities.Editor
             return autoSet;
         }
 
+        private const BindingFlags BINDING_FLAGS = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
         internal static GetComponentFunc GetGetComponentFunc(SerializedProperty property)
         {
             var componentType = property.serializedObject.targetObject.GetType();
-            var field = componentType.GetField(property);
+            var field = GetField(property, componentType);
             var attr = GetAutoSetAttribute(field);
             if (attr != null)
             {
@@ -163,6 +165,18 @@ namespace Meta.Utilities.Editor
                     if (attr.AttributeType == typeof(AutoSetFromParentAttribute))
                         return (target) => target.GetComponentInParent(type, includeInactive);
                 }
+            }
+            return null;
+        }
+
+        private static FieldInfo GetField(SerializedProperty property, Type type)
+        {
+            while (type != null)
+            {
+                var field = type.GetField(property.name, BINDING_FLAGS);
+                if (field != null)
+                    return field;
+                type = type.BaseType;
             }
             return null;
         }

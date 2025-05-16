@@ -2,7 +2,6 @@
 
 using System.Collections.Concurrent;
 using System.Linq;
-using Meta.Utilities;
 using Oculus.Avatar2;
 using UnityEngine;
 

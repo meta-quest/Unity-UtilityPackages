@@ -15,7 +15,9 @@ namespace Meta.Utilities.Editor
 {
     public static class BuildTools
     {
-        [MenuItem("Tools/Regenerate Project Files")]
+        public const int MENU_PRIORITY = 50;
+
+        [MenuItem("Tools/Project Files/Regenerate", priority = MENU_PRIORITY, secondaryPriority = -1)]
         private static void GenerateProjectFiles()
         {
             Debug.Log("GenerateProjectFiles: CodeEditor.SetExternalScriptEditor");
@@ -35,7 +37,7 @@ namespace Meta.Utilities.Editor
 
         private static string ProjectRoot => Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
 
-        [MenuItem("Tools/Regenerate Project Files and Copy All Assemblies to Root")]
+        [MenuItem("Tools/Project Files/Regenerate and Copy All Assemblies to Root", priority = MENU_PRIORITY, secondaryPriority = -1)]
         public static async Task GenerateProjectFilesWithAssemblies()
         {
             foreach (var csproj in Directory.EnumerateFiles(ProjectRoot, "*.csproj", SearchOption.TopDirectoryOnly))
@@ -88,19 +90,40 @@ namespace Meta.Utilities.Editor
                 ContinueWith(_ => Application.Quit(0));
         }
 
+        private static string KeystorePasswordFilePath => Path.Combine(ProjectRoot, "keystore-passwords.txt");
+
         [InitializeOnLoadMethod]
         public static async Task SetKeystorePassword()
         {
-            var lines = await File.ReadAllLinesAsync(Path.Combine(ProjectRoot, "keystore-passwords.txt"));
-
+            var lines = await File.ReadAllLinesAsync(KeystorePasswordFilePath);
             if (lines != null)
             {
-                if (lines.Length > 0)
-                    PlayerSettings.Android.keystorePass = lines[0].Trim();
-
-                if (lines.Length > 1)
-                    PlayerSettings.Android.keyaliasPass = lines[1].Trim();
+                var keystorePass = lines.Length > 0 ? lines[0].Trim() : PlayerSettings.Android.keystorePass;
+                var keyaliasPass = lines.Length > 1 ? lines[1].Trim() : PlayerSettings.Android.keyaliasPass;
+                if (keystorePass != PlayerSettings.Android.keystorePass || keyaliasPass != PlayerSettings.Android.keyaliasPass)
+                {
+                    PlayerSettings.Android.keystorePass = keystorePass;
+                    PlayerSettings.Android.keyaliasPass = keyaliasPass;
+                    Debug.Log("Keystore passwords set from file.");
+                }
             }
+        }
+
+        [MenuItem("Tools/Keystore/Set passwords from file", priority = MENU_PRIORITY)]
+        public static async void SetKeystorePasswordMenu()
+        {
+            if (!File.Exists(KeystorePasswordFilePath))
+            {
+                if (EditorUtility.DisplayDialog("Set keystore passwords from file", "Open keystore-passwords.txt?", "OK"))
+                {
+                    {
+                        using var file = File.CreateText(KeystorePasswordFilePath);
+                    }
+                    _ = System.Diagnostics.Process.Start(KeystorePasswordFilePath);
+                }
+                return;
+            }
+            await SetKeystorePassword();
         }
 
         public static async Task<BuildResult> BuildAndroid()
@@ -273,7 +296,7 @@ Steps:
             }
         }
 
-        [MenuItem("Tools/Reimport VFX")]
+        [MenuItem("Tools/VFX/Reimport", priority = MENU_PRIORITY)]
         private static void ReimportVFX()
         {
             var guids = AssetDatabase.FindAssets("t:visualeffectasset t:shadergraphvfxasset");

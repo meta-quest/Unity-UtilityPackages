@@ -1,10 +1,16 @@
 # Meta Utilities Package
 
-This package contains general utilities for Unity development. You can integrate this package into your own project by using the Package Manager to [add the following Git URL](https://docs.unity3d.com/Manual/upm-ui-giturl.html):
+This package contains general utilities for Unity development.
+
+## Installation
+
+You can integrate this package into your own project by using the Package Manager to [add the following Git URL](https://docs.unity3d.com/Manual/upm-ui-giturl.html):
 
 ```txt
-https://github.com/oculus-samples/Unity-Discover.git?path=Packages/com.meta.utilities
+https://github.com/meta-quest/Unity-UtilityPackages.git?path=com.meta.utilities
 ```
+
+## Contents
 
 |Utility|Description|
 |-|-|

@@ -4,14 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEditor;
 using UnityEditor.SceneManagement;
-using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -48,14 +45,16 @@ namespace Meta.Utilities.Editor
 
         private static bool FixIdHash(NetworkObject obj)
         {
-            var old = obj.GlobalObjectIdHash;
-            obj.GenerateGlobalObjectIdHash();
+            var old = GetGlobalObjectIdHash();
+            obj.GetMethod<Action>("GenerateGlobalObjectIdHash").Invoke();
 
             EditorUtility.SetDirty(obj);
             PrefabUtility.RecordPrefabInstancePropertyModifications(obj);
             _ = EditorSceneManager.MarkSceneDirty(obj.gameObject.scene);
 
-            return obj.GlobalObjectIdHash != old;
+            return GetGlobalObjectIdHash() != old;
+
+            int GetGlobalObjectIdHash() => (int)obj.GetField("GlobalObjectIdHash");
         }
 
         private static IEnumerable<Scene> GetActiveScenes()

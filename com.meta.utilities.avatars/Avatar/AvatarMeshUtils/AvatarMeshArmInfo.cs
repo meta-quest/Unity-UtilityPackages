@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Meta.Utilities;
 using Unity.Collections;
 using UnityEngine;
 using static Oculus.Avatar2.CAPI;

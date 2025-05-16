@@ -37,7 +37,7 @@ namespace Meta.Utilities
             if (Instance != this)
                 Awake();
         }
-        
+
         protected virtual void OnDestroy()
         {
             if (Instance == this)

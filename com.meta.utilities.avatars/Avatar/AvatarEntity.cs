@@ -1,11 +1,9 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Meta.Utilities;
 using Oculus.Avatar2;
 using Oculus.Platform;
 using UnityEngine;
@@ -21,7 +19,7 @@ namespace Meta.Utilities.Avatars
         public bool IsNetworked { get; }
         public bool IsOwner { get; }
     }
-    
+
     /// <summary>
     /// The AvatarEntity handles the setup of the Avatar, adds functionalities to the base class OvrAvatarEntity.
     /// On Joint loaded callbacks
@@ -66,9 +64,9 @@ namespace Meta.Utilities.Avatars
 
         private Task m_initializationTask;
         private Task m_setUpAccessTokenTask;
-        
-        private OvrAvatarInputManagerBehavior  m_bodyTracking;
-        public OvrAvatarInputManagerBehavior  BodyTracking
+
+        private OvrAvatarInputManagerBehavior m_bodyTracking;
+        public OvrAvatarInputManagerBehavior BodyTracking
         {
             get => m_bodyTracking;
             protected set
@@ -108,7 +106,7 @@ namespace Meta.Utilities.Avatars
             if (string.IsNullOrEmpty(accessToken.Data))
             {
                 var error = accessToken.GetError();
-                Debug.LogError($@"[AvatarEntity] OVR GetAccessToken failed. {new {accessToken.IsError, error?.Code, error?.HttpCode, error?.Message}}", this);
+                Debug.LogError($@"[AvatarEntity] OVR GetAccessToken failed. {new { accessToken.IsError, error?.Code, error?.HttpCode, error?.Message }}", this);
                 return;
             }
 
@@ -147,7 +145,7 @@ namespace Meta.Utilities.Avatars
                 _creationInfo.features |= ovrAvatar2EntityFeatures.Animation;
 
                 // TODO: remove FindObject
-                var body = FindObjectsByType<OvrAvatarInputManagerBehavior >(FindObjectsSortMode.None).
+                var body = FindObjectsByType<OvrAvatarInputManagerBehavior>(FindObjectsSortMode.None).
                     FirstOrDefault(b => b.isActiveAndEnabled);
                 Debug.Log($"[AvatarEntity] Setting local body tracking to {body?.GetType()}", this);
                 BodyTracking = body;
@@ -164,7 +162,7 @@ namespace Meta.Utilities.Avatars
             {
                 _creationInfo.features &= ~ovrAvatar2EntityFeatures.Animation;
                 _creationInfo.features |= ovrAvatar2EntityFeatures.Preset_Remote;
-                
+
                 SetInputManager(null);
                 SetFacePoseProvider(null);
                 SetEyePoseProvider(null);
@@ -174,11 +172,11 @@ namespace Meta.Utilities.Avatars
             var activeView = isOwner ? ovrAvatar2EntityViewFlags.FirstPerson : ovrAvatar2EntityViewFlags.ThirdPerson;
 
             Debug.Log($"[AvatarEntity] Creating entity", this);
-            
+
             CreateEntity();
-            
+
             SetActiveView(activeView);
-            
+
             Debug.Log($"[AvatarEntity] Awaiting access token", this);
             await m_setUpAccessTokenTask;
 
@@ -232,7 +230,7 @@ namespace Meta.Utilities.Avatars
                 info.features &= ~ovrAvatar2EntityFeatures.Animation;
                 info.features |= ovrAvatar2EntityFeatures.Preset_Remote;
             }
-                
+
 
             return info;
         }
@@ -242,7 +240,7 @@ namespace Meta.Utilities.Avatars
             await m_setUpAccessTokenTask;
             LoadUser();
         }
-        
+
         public void LoadUser(ulong userId)
         {
             if (_userId != userId)

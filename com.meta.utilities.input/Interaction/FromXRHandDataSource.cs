@@ -2,8 +2,6 @@
 
 #if HAS_META_INTERACTION && HAS_META_AVATARS
 
-using Meta.Utilities;
-using Meta.Utilities.Input;
 using Oculus.Interaction;
 using Oculus.Interaction.Input;
 using UnityEngine;

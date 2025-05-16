@@ -2,7 +2,6 @@
 
 #if HAS_META_INTERACTION
 
-using Meta.Utilities;
 using Oculus.Interaction;
 using Oculus.Interaction.Input;
 using UnityEngine;
@@ -34,6 +33,14 @@ namespace Meta.Utilities.Input
             if (m_wasHandTracking == isHandTracking)
                 return;
             m_wasHandTracking = isHandTracking;
+
+            // Disable previous before updating the hand ref, this will unregister current WhenHandUpdated callbacks
+            // in the hierarchy
+            var activeSet = isHandTracking ? m_setActiveForVirtualHands : m_setActiveForHandTracking;
+            foreach (var obj in activeSet)
+            {
+                obj.SetActive(false);
+            }
 
             var sources = isHandTracking ? m_handTrackingHands : m_virtualHands;
             foreach (var (source, target) in sources.Zip(m_targetRefs))

@@ -2,10 +2,12 @@
 
 This package contains utilities relating to Unity's Input System.
 
+## Installation
+
 You can integrate this package into your own project by using the Package Manager to [add the following Git URL](https://docs.unity3d.com/Manual/upm-ui-giturl.html):
 
 ```txt
-https://github.com/oculus-samples/Unity-Discover.git?path=Packages/com.meta.utilities.input
+https://github.com/meta-quest/Unity-UtilityPackages.git?path=com.meta.utilities.input
 ```
 
 ## XR Toolkit for Meta Avatars

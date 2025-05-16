@@ -1,6 +1,5 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-using Meta.Utilities;
 using UnityEngine;
 
 namespace Meta.Utilities

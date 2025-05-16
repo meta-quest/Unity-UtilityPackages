@@ -45,6 +45,21 @@ namespace Meta.Utilities
             return default;
         }
 
+        public static IEnumerable<FieldInfo> GetAllFields(this Type target)
+        {
+            var flags = BindingFlags.Instance |
+                        BindingFlags.Public |
+                        BindingFlags.NonPublic;
+            for (var type = target; type != null; type = type.BaseType)
+            {
+                var fields = type.GetFields(flags);
+                foreach (var field in fields)
+                {
+                    yield return field;
+                }
+            }
+        }
+
         public static object GetField(this object target, string name)
         {
             var flags = BindingFlags.Instance |
@@ -145,7 +160,7 @@ namespace Meta.Utilities
         {
             var comparer = EqualityComparer<T>.Default;
             foreach (var value in values)
-                if (comparer.Equals(value, exempt) is false)
+                if (!comparer.Equals(value, exempt))
                     yield return value;
         }
 
@@ -156,7 +171,7 @@ namespace Meta.Utilities
             {
                 array.AddNoResize(value);
             }
-            return array;
+            return array.AsArray();
         }
 
         public static bool IsNullOrEmpty(this string str) => string.IsNullOrEmpty(str);
@@ -357,7 +372,7 @@ namespace Meta.Utilities
         public static T MaxByOrDefault<T>(this IEnumerable<T> values, Func<T, float> toKey)
         {
             var iter = values.GetEnumerator();
-            if (iter.MoveNext() is false)
+            if (!iter.MoveNext())
                 return default;
 
             var maxValue = iter.Current;
@@ -438,5 +453,46 @@ namespace Meta.Utilities
             (a, b, c) = value is { } data ? data : (default, default, default);
         }
 #nullable restore
+
+        /// <summary>
+        /// Checks recursively if the transform is the parent of the target gameobject
+        /// </summary>
+        /// <param name="transform">The transform of the potential parent</param>
+        /// <param name="target">The gameobject of the potential child</param>
+        /// <returns>A boolean stating if the target is a child of the transform</returns>
+        public static bool IsParentOf(this Transform transform, GameObject target)
+        {
+            if (transform.gameObject == target)
+                return true;
+
+            var found = false;
+            for (var i = 0; i < transform.childCount; i++)
+            {
+                if (transform.GetChild(i).IsParentOf(target))
+                {
+                    found = true;
+                    break;
+                }
+            }
+            return found;
+        }
+
+        /// <summary>
+        /// Checks recursively if the array of gameobjects contains a parent of the target gameobject
+        /// </summary>
+        /// <param name="gameObjects">An array of potential parent gameobjects</param>
+        /// <param name="target">A potential child gameobject</param>
+        /// <returns>A boolean stating if the target is a child of one of the gameobjects in the array</returns>
+        public static bool IsParentOf(this GameObject[] gameObjects, GameObject target)
+        {
+            foreach (var obj in gameObjects)
+            {
+                if (obj.transform.IsParentOf(target))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

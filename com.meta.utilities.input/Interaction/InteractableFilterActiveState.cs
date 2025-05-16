@@ -20,7 +20,7 @@ namespace Meta.Utilities.Input
 
         public bool Active => Interactor.CandidateProperties is RayCandidateProperties candidate &&
             candidate.ClosestInteractable != null &&
-            m_excludedTags.All(t => candidate.ClosestInteractable.CompareTag(t) is false);
+            m_excludedTags.All(t => !candidate.ClosestInteractable.CompareTag(t));
     }
 }
 

@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Clear Day
+  m_Shader: {fileID: -6465566751694194690, guid: 818046b3161aedc4281bd266e54b7264,
+    type: 3}
+  m_Parent: {fileID: 2100000, guid: 907cd1c9d82c10a4c83184fc49699705, type: 2}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap:
+    RenderType: Opaque
+  disabledShaderPasses:
+  - SHADOWCASTER
+  - DepthOnly
+  m_LockedProperties: _Back_Scatter_Power _Cloud_Ambient _Cloud_Back_Color _Cloud_Blend_Offset
+    _Cloud_Blend_Power _Cloud_Direction _Cloud_Normal _Cloud_Offset _Cloud_Opacity_Offset
+    _Cloud_Opacity_Scale _Cloud_Scale _Cloud_Speed _Cloud_Sun_Color _Cloud_Texture
+    _ENABLESTARS _Fog_Offset _Fog_Power _Front_Scatter_Power _Ground_Color _Scatter_Blend
+    _Sky_Blend_Offset _Sky_Blend_Power _Sky_Horizon_Color _Sky_Zenith_Color _Star_Color
+    _Star_Power _Star_Scale _Star_Texture
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _Back_Scatter_Power: 0.75
+    - _Cloud_Blend_Offset: 0.25
+    - _Cloud_Opacity_Offset: -0.3
+    - _Cloud_Opacity_Scale: 0.5
+    - _Cloud_Scale: 2
+    - _Cloud_Speed: 0
+    - _Fog_Offset: 0
+    - _Fog_Power: 12
+    - _Front_Scatter_Power: 0.75
+    - _IS_STORMY_SKY: 0
+    - _Sky_Blend_Offset: 0.23
+    - _Sky_Blend_Power: 3
+    - _UNDERWATER_FOG: 0
+    m_Colors:
+    - _Cloud_Ambient: {r: 0.5795278, g: 0.8075388, b: 1.4250685, a: 1}
+    - _Cloud_Back_Color: {r: 2.6390157, g: 2.4278753, b: 2.3776038, a: 1}
+    - _Cloud_Sun_Color: {r: 0.992, g: 0.992, b: 0.992, a: 1}
+    - _Ground_Color: {r: 0.60784316, g: 0.5529412, b: 0.5529412, a: 1}
+    - _Sky_Horizon_Color: {r: 0.5921569, g: 0.7568628, b: 0.9686275, a: 1}
+    - _Sky_Zenith_Color: {r: 0.21146315, g: 0.2708157, b: 0.4528302, a: 1}
+  m_BuildTextureStacks: []
+--- !u!114 &1130983063974069177
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 7
