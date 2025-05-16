@@ -1,0 +1,54 @@
+name: Tag new versions
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  tag_new_versions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          fetch-tags: true
+
+      - name: Check for new package versions
+        shell: pwsh
+        run: |
+          git fetch --tags
+          $ref = $env:GITHUB_REF_NAME
+          $ref | Write-Information -InformationAction Continue
+
+          $tags = git show $ref --name-only --format='' |
+            where { $_.EndsWith("package.json") } |
+            where { (git show $ref --format='' -- $_) -match '"version":' } |
+            % { gc $_ | ConvertFrom-Json } | % { "$($_.name)-$($_.version)" }
+          $tags | % {
+            $tag = $_
+            $tag | Write-Information -InformationAction Continue
+            
+            if (git tag -l $tag)
+            {
+                $next = "$_-v2"
+                "$tag already exists, trying $next" | Write-Information -InformationAction Continue
+                $tag = $next
+            }
+            if (git tag -l $tag)
+            {
+                $next = "$_-v3"
+                "$tag already exists, trying $next" | Write-Information -InformationAction Continue
+                $tag = $next
+            }
+            if (git tag -l $tag)
+            {
+                $next = "$_-v4"
+                "$tag already exists, trying $next" | Write-Information -InformationAction Continue
+                $tag = $next
+            }
+
+            git tag $tag
+          }
+          
+          git push --tags origin
