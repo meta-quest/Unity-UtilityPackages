@@ -28,7 +28,13 @@ These packages are helpful for XR projects, particularly those using Meta SDKs.
 
 ## Installation
 
-To integrate any of these packages into your Unity project, use the Package Manager to [add the respective Git URL](https://docs.unity3d.com/Manual/upm-ui-giturl.html) provided in each package's README file. For example:
+To integrate any of these packages into your Unity project, first ensure you have Git LFS installed by running this command:
+
+```sh
+git lfs install
+```
+
+Then, use the Package Manager to [add the respective Git URL](https://docs.unity3d.com/Manual/upm-ui-giturl.html) provided in each package's README file. For example:
 
 ```txt
 https://github.com/meta-quest/Unity-UtilityPackages.git?path=com.meta.utilities
