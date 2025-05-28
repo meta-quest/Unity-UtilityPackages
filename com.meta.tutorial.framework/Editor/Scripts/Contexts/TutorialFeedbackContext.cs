@@ -9,7 +9,7 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
 {
     [MetaHubContext(TutorialFrameworkHub.CONTEXT)]
 #if META_EDIT_TUTORIALS
-    [CreateAssetMenu(fileName = "TutorialFeedback", menuName = "Meta Tutorial Hub/Tutorial Feedback Context", order = 3)]
+    [UnityEngine.CreateAssetMenu(fileName = "TutorialFeedback", menuName = "Meta Tutorial Hub/Tutorial Feedback Context", order = 3)]
 #endif
     public class TutorialFeedbackContext : BaseTutorialHubContext
     {
