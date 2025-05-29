@@ -89,7 +89,7 @@ namespace Meta.Tutorial.Framework.Hub.Pages
                 if (GUILayout.Button(gitHubButtonContent, ButtonStyle, GUILayout.Width(gitHubBtnSize.x), GUILayout.Height(gitHubBtnSize.y)))
                 {
                     Telemetry.OnFeedbackClicked(Target.ProjectName, "GitHub");
-                    Application.OpenURL(Target.FeedbackContext.GitHubUrl + "/issues/new");
+                    Application.OpenURL(Target.FeedbackContext.GitHubUrl + "/issues/new?template=bug_report.yml");
                 }
                 GUILayout.EndHorizontal();
                 EditorGUILayout.Space(20);
