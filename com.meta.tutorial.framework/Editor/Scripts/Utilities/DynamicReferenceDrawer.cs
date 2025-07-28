@@ -50,7 +50,19 @@ namespace Meta.Tutorial.Framework.Hub.Utilities
             var instanceID = property.FindPropertyRelative("m_instanceID");
 
             var referenceTypeRect = new Rect(position.x, y, position.width, LINE_HEIGHT);
+            var prevRefType = referenceType.enumValueIndex;
             _ = EditorGUI.PropertyField(referenceTypeRect, referenceType);
+            if (prevRefType != referenceType.enumValueIndex)
+            {
+                // clear everything
+                obj.objectReferenceValue = null;
+                classType.stringValue = string.Empty;
+                scene.objectReferenceValue = null;
+                name.stringValue = string.Empty;
+                path.stringValue = string.Empty;
+                guid.stringValue = string.Empty;
+                instanceID.intValue = 0;
+            }
             y += actualHeight;
 
             var lineCount = 2;
@@ -67,7 +79,7 @@ namespace Meta.Tutorial.Framework.Hub.Utilities
                         // Update the property value
                         if (newObject != obj.objectReferenceValue)
                         {
-                            if (newObject is GameObject go)
+                            if (newObject is GameObject { scene: { isLoaded: true } } go)
                             {
                                 referenceType.enumValueIndex = (int)DynamicReference.ReferenceType.SCENE_OBJECT; // Set the reference type to SceneObject
                                 scene.objectReferenceValue = AssetDatabase.LoadAssetAtPath<SceneAsset>(go.scene.path);

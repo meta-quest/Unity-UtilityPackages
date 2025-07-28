@@ -48,6 +48,8 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
 
         public string TelemetryContext => m_context.TelemetryContext;
 
+        public MetaHubContext ContextRef => m_context;
+
         /// <summary>
         /// The Markdown file to display.
         /// </summary>

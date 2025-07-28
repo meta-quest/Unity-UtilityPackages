@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Meta Platforms, Inc. and affiliates.
 
 using Meta.Tutorial.Framework.Hub.Interfaces;
+using Meta.Tutorial.Framework.Windows;
 
 namespace Meta.Tutorial.Framework.Hub.Utilities
 {
@@ -18,10 +19,18 @@ namespace Meta.Tutorial.Framework.Hub.Utilities
         private const string EVENT_IMAGE_CLICKED = "img_clicked";
         private const string EVENT_OPEN_TUTORIAL_BTN_CLICKED = "open_btn_clicked";
         private const string EVENT_FEEDBACK_BTN_CLICKED = "feedback_btn_clicked";
+        private const string EVENT_MENU_SHOW_TUTORIAL_BTN_CLICKED = "menu_show_btn_clicked";
+        private const string EVENT_LINK_CLICKED = "href_clicked";
 
+        public static void OnMenuShowTutorialHubClicked(TutorialFrameworkHub hub)
+        {
+            SendEvent(TUTORIAL_HUB_CONTEXT, EVENT_MENU_SHOW_TUTORIAL_BTN_CLICKED,
+                hub.PrimaryContext.ProjectName);
+        }
         public static void OnPageLoaded(string telemetryContext, IPageInfo page)
         {
-            SendEvent(telemetryContext, EVENT_PAGE_LOADED, $"{page.ProjectName}_{page.Name}");
+            SendEvent(telemetryContext, EVENT_PAGE_LOADED,
+                BuildParamWithProjectName(page.ProjectName, page.Name));
         }
 
         public static void OnNavigation(string telemetryContext, string selectedPageId)
@@ -64,16 +73,29 @@ namespace Meta.Tutorial.Framework.Hub.Utilities
         }
 
 
-        public static void OnOpenTutorialButton(string contextTitle)
+        public static void OnOpenTutorialButton(string telemetryContext, string projectName, string from)
         {
             SendEvent(
-                TUTORIAL_HUB_CONTEXT, EVENT_OPEN_TUTORIAL_BTN_CLICKED, contextTitle);
+                telemetryContext, EVENT_OPEN_TUTORIAL_BTN_CLICKED,
+                BuildParamWithProjectName(projectName, from));
         }
 
         public static void OnFeedbackClicked(string targetProjectName, string feedbackType)
         {
             SendEvent(
                 TUTORIAL_HUB_CONTEXT, EVENT_FEEDBACK_BTN_CLICKED, $"{targetProjectName}|{feedbackType}");
+        }
+
+        public static void OnLinkClicked(string telemetryContext, string projectName, string href)
+        {
+            SendEvent(
+                telemetryContext, EVENT_LINK_CLICKED,
+                BuildParamWithProjectName(projectName, href));
+        }
+
+        private static string BuildParamWithProjectName(string projectName, string additionalParam)
+        {
+            return $"{projectName}::{additionalParam}";
         }
 
         private static string BuildEventName(string telemetryContext, string eventName)
@@ -87,7 +109,7 @@ namespace Meta.Tutorial.Framework.Hub.Utilities
             param = SanitizeParam(param);
             _ = OVRPlugin.SetDeveloperMode(OVRPlugin.Bool.True);
             _ = OVRPlugin.SendEvent(name, param, "integration");
-            // Debug.Log($"Send Event: {name} | {param}");
+            // UnityEngine.Debug.Log($"Send Event: {name} | {param}");
         }
 
         private static string SanitizeParam(string evt)

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Meta Platforms, Inc. and affiliates.
 
+using System;
 using Meta.Tutorial.Framework.Hub.Attributes;
 using Meta.Tutorial.Framework.Hub.Pages;
 using Meta.Tutorial.Framework.Hub.Utilities;
@@ -14,7 +15,7 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
 #endif
     public class TutorialReferencesContext : BaseTutorialHubContext
     {
-        [System.Serializable]
+        [Serializable]
         public struct DynamicReferenceEntry
         {
             public string Header;
@@ -28,6 +29,10 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
         {
             var pageAssetPath = GetRootPageAssetPath();
             _ = CreateOrLoadInstance<MetaHubWalkthroughPage>(pageAssetPath, out var walkthroughPage, forceCreate);
+            if (walkthroughPage == null)
+            {
+                walkthroughPage = CreateInstance<MetaHubWalkthroughPage>();
+            }
             walkthroughPage.Name = Title;
             walkthroughPage.References = new DynamicReferenceEntry[m_references.Length];
             for (var i = 0; i < m_references.Length; i++) // Copy references

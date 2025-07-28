@@ -53,8 +53,12 @@ namespace Meta.Tutorial.Framework.Windows
         }
 
         [MenuItem("Meta/Tutorial Hub/&Show Hub")]
-        public static MetaHubBase ShowWindow()
-            => s_instance = ShowWindow<TutorialFrameworkHub>(Contexts.ToArray());
+        public static void MenuShowHub()
+        {
+            _ = ShowWindow();
+            Telemetry.OnMenuShowTutorialHubClicked(s_instance);
+        }
+        public static MetaHubBase ShowWindow() => s_instance = ShowWindow<TutorialFrameworkHub>(Contexts.ToArray());
 
         protected override void OnEnable()
         {
@@ -267,6 +271,8 @@ namespace Meta.Tutorial.Framework.Windows
                 if (hyperLinkData != null && hyperLinkData.ContainsKey("href"))
                 {
                     var href = hyperLinkData["href"];
+                    Telemetry.OnLinkClicked(
+                        s_instance.PrimaryContext.TelemetryContext, s_instance.PrimaryContext.ProjectName, href);
                     var split = href.Split('#');
                     href = split[0];
                     var anchor = split.Length > 1 ? split[1] : null;
@@ -297,19 +303,17 @@ namespace Meta.Tutorial.Framework.Windows
                                             }
                                         }
                                     }
-
-                                    // var page = instance._rootPageGroup.Pages.First(p => string.Compare(sectionTitle, p.info.Name) == 0).page;
-                                    // instance.ActivePage = page;
                                 }
                                 catch (Exception)
                                 {
 #if META_EDIT_TUTORIALS
-                                    Debug.LogWarning($"Couldn't find anchor '{anchor}' in {href}");
+                                    Debug.LogWarning($"Couldn't find anchor '{anchor}' in {href} at root");
 #endif
                                     anchor = null;
                                 }
                             }
-                            else // if (string.IsNullOrEmpty(anchor))
+
+                            if (string.IsNullOrEmpty(anchor))
                             {
                                 // Find the first page in the instance that has the same title as the context: context.Title
                                 foreach (var group in s_instance.m_pageGroups)

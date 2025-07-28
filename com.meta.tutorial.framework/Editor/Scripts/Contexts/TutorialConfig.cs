@@ -23,6 +23,8 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
         public Texture2D NavHeaderImage => m_navHeaderImage;
         public Banner BannerConfig => m_bannerConfig;
 
+        public string TelemetryContext => Telemetry.TUTORIAL_HUB_CONTEXT;
+
         [Serializable]
         public class Banner
         {

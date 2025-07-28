@@ -545,7 +545,7 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
                     listPrefix = string.IsNullOrEmpty(listPrefix) ? "•" : listPrefix; // Normalize '-' and '*' to '•'
                     processedLine = listMatch.Groups[3].Value;
 
-                    newListLevel = Mathf.FloorToInt(indentRaw.Length / 4f) + 1;
+                    newListLevel = Mathf.FloorToInt(indentRaw.Length / 2f) + 1;
                     var matches = m_orderedCount.Matches(listPrefix);
                     if (matches.Count > 0)
                     {

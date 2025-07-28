@@ -1,5 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
+using System.IO;
 using Meta.Tutorial.Framework.Hub.Contexts;
 using Meta.Tutorial.Framework.Hub.Interfaces;
 using Meta.Tutorial.Framework.Hub.UIComponents;
@@ -63,18 +64,23 @@ namespace Meta.Tutorial.Framework.Hub.Pages
             GUILayout.Space(20);
 
             var obj = entry.Reference.GetObject(true);
-            var buttonText = "Select " + (obj ? obj.GetType().Name : "GameObject"); // if we don't have an object, then it must be a GameObject from a scene
+            var objTypeName = GetObjectTypeName(obj);
+            var buttonText = $"Select {objTypeName}";
             var tooltip = entry.Reference.RefType == DynamicReference.ReferenceType.SCENE_OBJECT ?
                 "This will open the scene if it's not already loaded" :
                 null;
-            var guiContent = new GUIContent(buttonText, tooltip);
-            var size = ButtonStyle.CalcSize(new GUIContent(buttonText));
-            if (GUILayout.Button(guiContent, ButtonStyle, GUILayout.Width(size.x), GUILayout.Height(size.y)))
+            Vector2 size;
+            if (obj != null || entry.Reference.RefType == DynamicReference.ReferenceType.SCENE_OBJECT)
             {
-                var reference = entry.Reference;
-                HighlightUtils.HighlightDynamicReference(reference);
-                var page = (MetaHubWalkthroughPage)target;
-                Telemetry.OnHighlightDynamicReference(page.TelemetryContext, reference.GetReferenceId(), page);
+                var guiContent = new GUIContent(buttonText, tooltip);
+                size = ButtonStyle.CalcSize(new GUIContent(buttonText));
+                if (GUILayout.Button(guiContent, ButtonStyle, GUILayout.Width(size.x), GUILayout.Height(size.y)))
+                {
+                    var reference = entry.Reference;
+                    HighlightUtils.HighlightDynamicReference(reference);
+                    var page = (MetaHubWalkthroughPage)target;
+                    Telemetry.OnHighlightDynamicReference(page.TelemetryContext, reference.GetReferenceId(), page);
+                }
             }
 
             if (obj is SceneAsset)
@@ -121,6 +127,37 @@ namespace Meta.Tutorial.Framework.Hub.Pages
             var page = (MetaHubWalkthroughPage)target;
             Telemetry.OnPageLoaded(page.TelemetryContext, page);
             m_isInitialized = true;
+        }
+
+        private string GetObjectTypeName(Object obj)
+        {
+            // if we don't have an object, then it must be a GameObject from a scene
+            if (obj == null)
+            {
+                return "GameObject";
+            }
+
+            var type = obj.GetType();
+
+            if (type == typeof(GameObject))
+            {
+                // check if it's in the scene, if not it's a prefab
+                if (!((GameObject)obj).scene.isLoaded)
+                {
+                    return "Prefab";
+                }
+            }
+            else if (type == typeof(DefaultAsset))
+            {
+                // If it's a default asset check if it's a folder
+                var path = AssetDatabase.GetAssetPath(obj);
+                if (Directory.Exists(path))
+                {
+                    return "Folder";
+                }
+            }
+
+            return type.Name;
         }
     }
 }

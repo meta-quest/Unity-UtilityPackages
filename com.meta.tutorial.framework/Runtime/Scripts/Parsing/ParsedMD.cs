@@ -514,7 +514,8 @@ namespace Meta.Tutorial.Framework.Hub.Parsing
                 _ = rawContent.Append(line);
                 _ = rawContent.Append("\n");
             }
-            m_sections.Add(new Section(level, title, rawContent.ToString(), Path.GetDirectoryName(m_pathRoot), imagePaths.ToArray(), hyperlinkList));
+            var modifiedLevel = reduceTitleLevelBy1 ? Mathf.Max(0, level - 1) : level;
+            m_sections.Add(new Section(modifiedLevel, title, rawContent.ToString(), Path.GetDirectoryName(m_pathRoot), imagePaths.ToArray(), hyperlinkList));
         }
     }
 }

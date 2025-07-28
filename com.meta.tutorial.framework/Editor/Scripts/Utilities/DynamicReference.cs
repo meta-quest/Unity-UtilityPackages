@@ -148,13 +148,23 @@ namespace Meta.Tutorial.Framework.Hub.Utilities
         public void SetWithClassType(string classType, string name = "")
         {
             var type = Type.GetType(classType);
+            if (type == null)
+            {
+                // try using the default Assembly
+                type = Type.GetType($"{classType}, Assembly-CSharp");
+            }
             SetWithClassType(type, name);
         }
 
         public void SetWithClassType(Type classType, string name = "")
         {
+            if (classType == null)
+            {
+                m_obj = null;
+                return;
+            }
             m_referenceType = ReferenceType.CLASS_TYPE;
-            m_classType = classType.FullName;
+            m_classType = classType.AssemblyQualifiedName;
             m_name = name;
 
             var objs = Resources.FindObjectsOfTypeAll(classType);
@@ -167,7 +177,21 @@ namespace Meta.Tutorial.Framework.Hub.Utilities
         {
             m_referenceType = ReferenceType.SCENE_OBJECT;
             m_name = name;
-            m_obj = GameObject.Find(name);
+            m_obj = GameObject.Find(m_name);
+            // if it's null it might be hidden
+            if (m_obj == null)
+            {
+                var allObjects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                foreach (var obj in allObjects)
+                {
+                    if (obj.activeInHierarchy == false && GetGameObjectPath(obj) == name)
+                    {
+                        m_obj = obj;
+                        break;
+                    }
+                }
+
+            }
         }
 
         public void SetWithSceneObject(SceneAsset scene, string scenePath)

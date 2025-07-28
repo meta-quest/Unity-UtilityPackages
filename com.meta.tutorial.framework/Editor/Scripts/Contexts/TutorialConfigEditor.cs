@@ -20,7 +20,7 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
 #endif
             if (GUILayout.Button("Open Tutorial Hub"))
             {
-                Telemetry.OnOpenTutorialButton(context.Name);
+                Telemetry.OnOpenTutorialButton(context.TelemetryContext, context.Name, context.name);
                 TutorialFrameworkHub.ShowWindow();
             }
             EditorGUILayout.Space();

@@ -7,6 +7,7 @@ using Meta.Tutorial.Framework.Hub.Attributes;
 using Meta.Tutorial.Framework.Hub.Pages;
 using Meta.Tutorial.Framework.Hub.Pages.Markdown;
 using Meta.Tutorial.Framework.Hub.Parsing;
+using Meta.Tutorial.Framework.Hub.Utilities;
 using Meta.Tutorial.Framework.Windows;
 using UnityEngine;
 
@@ -30,6 +31,7 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
             public string SectionTitleAsAnchorId => Regex.Replace(SectionTitle.Replace(" ", "-"), @"[^a-zA-Z0-9\-]", string.Empty).ToLower();
         }
 
+        [MDFilePath]
         [SerializeField] private string m_markdownPath = "./README.md";
         [SerializeField, Tooltip("When all content is a level 1 because the header is level 0 we can bring them to level 0")]
         private bool m_reduceTitleLevelBy1 = false;
@@ -84,6 +86,25 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
             }
         }
 
+        private bool AnyInContext
+        {
+            get
+            {
+                if (m_pageConfigs == null || m_pageConfigs.Count == 0)
+                {
+                    return false;
+                }
+                foreach (var pageConfig in m_pageConfigs)
+                {
+                    if (pageConfig.ShowSectionInContext)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
         public IReadOnlyList<PageConfig> PageConfigs => m_pageConfigs;
 
         private string ReadTextFromFile(string path)
@@ -92,99 +113,123 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
         public override PageReference[] CreatePageReferences(bool forceCreate = false)
         {
             var rootPath = System.IO.Path.GetDirectoryName(m_markdownPath) + '/';
+            var allPages = new List<PageReference>();
             var pageAssetPath = GetRootPageAssetPath();
-            var isInstance = CreateOrLoadInstance<MetaHubMarkdownPage>(pageAssetPath, out var markdownPage, forceCreate);
-            if (isInstance)
-            {
-                markdownPage.OverrideMarkdownText(ReadTextFromFile(m_markdownPath), rootPath, m_reduceTitleLevelBy1);
-                markdownPage.OverrideContext(this);
-            }
 
-            if (markdownPage == null)
+            if (AnyInContext)
             {
-                GenerateParsedMarkdown();
-            }
-            else
-            {
-                m_parsedMarkdown = markdownPage.ParsedMarkdown;
-            }
-
-            if (IncludeAllInContext || (markdownPage && !isInstance && !AnyAsChildren))
-            {
-                markdownPage = InstanceToAsset(markdownPage, pageAssetPath);
-                var soPage = new ScriptableObjectPage(markdownPage, TutorialName, markdownPage.HierarchyName, markdownPage.Priority, ShowBanner ? Banner : null);
-                return new[]
+                var createdInstance = CreateOrLoadInstance<MetaHubMarkdownPage>(pageAssetPath, out var markdownPage, forceCreate);
+                // if the instance is created we regenerate the page
+                if (createdInstance)
                 {
-                    new PageReference()
+                    if (IncludeAllInContext)
                     {
-                        Page = soPage,
-                        Info = soPage
+                        markdownPage.OverrideMarkdownText(ReadTextFromFile(m_markdownPath), rootPath, m_reduceTitleLevelBy1);
                     }
-                };
-            }
-            else
-            {
-                ParsedMD.Section aggregator = null;
-                var level0Indices = m_parsedMarkdown.Level0SectionIndices;
-                if (isInstance)
-                {
-                    var processingParsedMarkdown = markdownPage.ParsedMarkdown;
-                    for (var i = 0; i < level0Indices.Length; i++)
+                    else
                     {
-                        if (m_pageConfigs[i].ShowSectionInContext)
-                        {
-                            var content = processingParsedMarkdown.GetCollapsedSection0(i, m_pageConfigs[i].HideTitle);
-                            if (aggregator == null)
-                            {
-                                aggregator = content;
-                            }
-                            else
-                            {
-                                aggregator.Append(content);
-                            }
-                        }
+                        GenerateMainPageWithSubsections(ref markdownPage, rootPath, pageAssetPath);
                     }
-                }
 
-                var ret = new List<PageReference>();
-                if (aggregator != null)
-                {
-                    markdownPage.OverrideMarkdownText(aggregator.ToString(), rootPath, m_reduceTitleLevelBy1, false); // the aggregator was already stripped of xml
+                    if (AnyAsChildren)
+                    {
+                        markdownPage.OverrideContext(this, prefixHierarchyName: $"{Title}/");
+                    }
+                    else
+                    {
+                        markdownPage.OverrideContext(this);
+                    }
+
                     markdownPage = InstanceToAsset(markdownPage, pageAssetPath);
-
-                    var soPage = new ScriptableObjectPage(markdownPage, TutorialName, markdownPage.HierarchyName, markdownPage.Priority, ShowBanner ? Banner : null);
-                    ret.Add(new PageReference()
-                    {
-                        Page = soPage,
-                        Info = soPage
-                    });
                 }
-
-                // now create pages and references for the children
-                for (var i = 0; i < level0Indices.Length; i++)
+                if (markdownPage != null)
                 {
-                    if (m_pageConfigs[i].ShowSectionAsChild)
+                    var soPage = new ScriptableObjectPage(
+                        markdownPage, TutorialName, markdownPage.HierarchyName, markdownPage.Priority,
+                        ShowBanner ? Banner : null);
+                    allPages.Add(new PageReference() { Page = soPage, Info = soPage });
+                }
+            }
+
+            if (AnyAsChildren)
+            {
+                for (var i = 0; i < m_pageConfigs.Count; i++)
+                {
+                    var pageConfig = m_pageConfigs[i];
+                    if (pageConfig.ShowSectionAsChild)
                     {
-                        pageAssetPath = GetChildPageAssetPath(m_pageConfigs[i].SectionTitle);
-                        isInstance = CreateOrLoadInstance<MetaHubMarkdownPage>(pageAssetPath, out var childPage, forceCreate);
-                        if (isInstance)
+                        pageAssetPath = GetChildPageAssetPath(pageConfig.SectionTitle);
+                        var createdInstance = CreateOrLoadInstance<MetaHubMarkdownPage>(
+                            pageAssetPath, out var childPage, forceCreate);
+                        if (createdInstance)
                         {
-                            childPage.OverrideMarkdownText(m_parsedMarkdown.GetCollapsedSection0(i, m_pageConfigs[i].HideTitle).ToString(), rootPath, m_reduceTitleLevelBy1, false); // xml is already stripped
-                            childPage.OverrideContext(this, prefixHierarchyName: $"{markdownPage.HierarchyName}/", displayName: m_pageConfigs[i].SectionTitle);
+                            childPage.OverrideMarkdownText(
+                                GetParsedMarkDown().GetCollapsedSection0(i, m_pageConfigs[i].HideTitle).ToString(),
+                                rootPath, m_reduceTitleLevelBy1, false); // xml is already stripped
+                            childPage.OverrideContext(
+                                this, prefixHierarchyName: $"{Title}/",
+                                displayName: m_pageConfigs[i].SectionTitle, overridePriority: Priority + i);
                             childPage = InstanceToAsset(childPage, pageAssetPath);
                         }
 
-                        var childSoPage = new ScriptableObjectPage(childPage, TutorialName, childPage.HierarchyName, childPage.Priority);
-                        ret.Add(new PageReference()
+                        if (childPage != null)
                         {
-                            Page = childSoPage,
-                            Info = childSoPage
-                        });
+                            var childSoPage = new ScriptableObjectPage(
+                                childPage, TutorialName, childPage.HierarchyName, childPage.Priority);
+                            allPages.Add(new PageReference() { Page = childSoPage, Info = childSoPage });
+                        }
                     }
                 }
-
-                return ret.ToArray();
             }
+
+            return allPages.ToArray();
+        }
+
+        private ParsedMD GetParsedMarkDown()
+        {
+            if (m_parsedMarkdown == null)
+            {
+                GenerateParsedMarkdown();
+            }
+
+            return m_parsedMarkdown;
+        }
+
+        private void GenerateMainPageWithSubsections(ref MetaHubMarkdownPage markdownPage, string rootPath, string pageAssetPath)
+        {
+            if (markdownPage == null)
+            {
+                return;
+            }
+            ParsedMD.Section aggregator = null;
+            for (var i = 0; i < m_pageConfigs.Count; i++)
+            {
+                if (m_pageConfigs[i].ShowSectionInContext)
+                {
+                    var content = GetParsedMarkDown().GetCollapsedSection0(i, m_pageConfigs[i].HideTitle);
+                    if (aggregator == null)
+                    {
+                        aggregator = content;
+                    }
+                    else
+                    {
+                        aggregator.Append(content);
+                    }
+                }
+            }
+
+            if (aggregator != null)
+            {
+                // the aggregator was already stripped of xml
+                markdownPage.OverrideMarkdownText(aggregator.ToString(), rootPath, m_reduceTitleLevelBy1, false);
+            }
+        }
+
+        public void ReloadPage()
+        {
+            // clear last loaded path so that it reloads the file
+            m_lastLoadedPath = null;
+            OnValidate();
         }
 
         private void OnValidate()
