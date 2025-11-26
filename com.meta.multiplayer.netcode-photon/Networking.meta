@@ -1,10 +1,6 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Packages/com.meta.multiplayer.netcode-photon/Networking.meta
 guid: e2e57936e12c1de42801d1af7c6d6069
 folderAsset: yes
-========
-guid: 4d812513ebdfbde449be528cebca46b2
->>>>>>>> a34b4e632fd32eba5debd64ceba480d29d02aa37:Packages/com.meta.utilities.input/LICENSE.meta
 DefaultImporter:
   externalObjects: {}
   userData: 
