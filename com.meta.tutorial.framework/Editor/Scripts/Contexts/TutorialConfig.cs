@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Meta.Tutorial.Framework.Hub.UIComponents;
 using Meta.Tutorial.Framework.Hub.Utilities;
@@ -24,6 +25,17 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
         public Banner BannerConfig => m_bannerConfig;
 
         public string TelemetryContext => Telemetry.TUTORIAL_HUB_CONTEXT;
+
+        public void GenerateAllSubContexts()
+        {
+            var allContexts = Resources.FindObjectsOfTypeAll(typeof(BaseTutorialHubContext));
+            var contextForConfig =
+                allContexts.Where(context => (context as BaseTutorialHubContext)?.TutorialConfig == this);
+            foreach (var context in contextForConfig)
+            {
+                _ = ((context as BaseTutorialHubContext)?.RegeneratePageReferences());
+            }
+        }
 
         [Serializable]
         public class Banner

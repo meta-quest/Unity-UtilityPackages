@@ -49,7 +49,7 @@ namespace Meta.Tutorial.Framework.Hub.Utilities
 
                 for (var i = 1; i < codeLines.Length; i++)
                 {
-                    result += $"    <color={Styles.CodeBlockTextColorHex}>{codeLines[i]}</color>\n";
+                    result += $"    <color={Styles.CodeBlockTextColorHex}>{codeLines[i]}</color>__BLOCK_NEW_LINE__";
                 }
 
                 return result;
@@ -74,6 +74,7 @@ namespace Meta.Tutorial.Framework.Hub.Utilities
             markdown = Regex.Replace(markdown, @"\n", " ");
             markdown = Regex.Replace(markdown, @"__NEW_PARA__", "\n\n");
             markdown = Regex.Replace(markdown, @"__PRE_HEADER__", "\n\n\n");
+            markdown = Regex.Replace(markdown, @"__BLOCK_NEW_LINE__", "\n");
 
             // Unordered lists
             // markdown = Regex.Replace(markdown, @"^\s*\*\s(.*?)$", "• $1", RegexOptions.Multiline);

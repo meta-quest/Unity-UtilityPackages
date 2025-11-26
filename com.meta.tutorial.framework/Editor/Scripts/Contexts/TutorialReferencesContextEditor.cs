@@ -17,7 +17,7 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
             base.OnInspectorGUI();
             if (GUILayout.Button("Generate"))
             {
-                context.CreatePageReferences(true);
+                context.RegeneratePageReferences();
             }
             EditorGUILayout.Space();
 #endif

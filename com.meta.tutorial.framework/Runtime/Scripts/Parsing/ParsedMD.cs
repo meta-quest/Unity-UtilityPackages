@@ -186,7 +186,7 @@ namespace Meta.Tutorial.Framework.Hub.Parsing
 
             public HyperlinkSegment(string text, string url, string altText = null, Dictionary<string, string> properties = null) : base(text)
             {
-                URL = url;
+                URL = url.ToLower();
                 AltText = altText ?? text;
                 IsImage = URL.EndsWith(".png") || URL.EndsWith(".jpg") || URL.EndsWith(".jpeg") || URL.EndsWith(".gif");
                 m_properties = properties;
@@ -502,7 +502,8 @@ namespace Meta.Tutorial.Framework.Hub.Parsing
                             hyperlinkList.Add(new Hyperlink(line[(i + 1)..end], url, alt));
                             i = urlEnd;
 
-                            if (url.EndsWith(".png") || url.EndsWith(".jpg") || url.EndsWith(".jpeg"))
+                            var urlLower = url.ToLower();
+                            if (urlLower.EndsWith(".png") || urlLower.EndsWith(".jpg") || urlLower.EndsWith(".jpeg") || urlLower.EndsWith(".gif"))
                             {
                                 imagePaths.Add(url);
                             }

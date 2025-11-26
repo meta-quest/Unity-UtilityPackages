@@ -28,6 +28,7 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
         {
             Block,
             List,
+            CodeBlock,
         }
 
         private GUIStyle m_linkStyle;
@@ -58,6 +59,8 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
         private readonly Regex m_orderedCount = new(@"(\d)+", RegexOptions.Compiled | RegexOptions.Multiline);
         private readonly Regex m_quotedBlockRegex = new(@"^(\s*)>\s*(.*)", RegexOptions.Compiled | RegexOptions.Multiline);
         private readonly Regex m_indentationRegex = new(@"^(\s*)(.*)", RegexOptions.Compiled | RegexOptions.Multiline);
+        private readonly Regex m_codeBlockRegex = new(@"^(\s*)```(.*)", RegexOptions.Compiled | RegexOptions.Multiline);
+        private readonly Regex m_codeBlockInnerCodeRegex = new(@"^```.*?\n(.*?)^```", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
         private const float PADDING = Styles.Markdown.PADDING;
 
@@ -507,6 +510,46 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
         }
 
         /// <summary>
+        /// Add Draw function to the start of a code block
+        /// </summary>
+        private void DrawStartCodeBlock()
+        {
+            Draw(() =>
+            {
+                GUILayout.Space(Styles.Markdown.SPACING);
+                GUILayout.BeginHorizontal(GUILayout.MaxWidth(RenderedWindowWidth - 20));
+                GUILayout.Space(Styles.Markdown.SPACING);
+                GUILayout.BeginVertical(Styles.Markdown.Box.Style);
+                GUILayout.Space(Styles.Markdown.BOX_SPACING * 2);
+            });
+        }
+
+        /// <summary>
+        /// Add Draw function to the end of a code block
+        /// </summary>
+        private void DrawEndCodeBlock(string code)
+        {
+            Draw(() =>
+            {
+                GUILayout.Space(Styles.Markdown.BOX_SPACING * 2);
+                GUILayout.EndVertical();
+                var lastRect = GUILayoutUtility.GetLastRect();
+                if (code != null && lastRect.Contains(Event.current.mousePosition))
+                {
+                    if (GUI.Button(new Rect(lastRect.x + lastRect.width - 50, lastRect.y, 50, 20), "Copy"))
+                    {
+                        if (TryMatch(code, m_codeBlockInnerCodeRegex, out var match))
+                        {
+                            EditorGUIUtility.systemCopyBuffer = match.Groups[1].Value.Trim();
+                        }
+                    }
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.Space(Styles.Markdown.SPACING);
+            });
+        }
+
+        /// <summary>
         /// Process the segment text into draw calls.
         /// We process line by line to find the type of content of each line.
         /// </summary>
@@ -517,60 +560,79 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
             StringBuilder sb = new();
             var quotedBlockLevel = 0;
             var listLevel = 0;
+            var isCodeBlock = false;
             // Process line by line
             foreach (var line in lines)
             {
                 var processedLine = line;
-                var newQuotedBlockLevel = 0;
-                // First we check if it's in a quoted block
-                if (TryMatch(processedLine, m_quotedBlockRegex, out var quotedMatch))
-                {
-                    processedLine = quotedMatch.Groups[2].Value.Trim();
-                    newQuotedBlockLevel = 1;
-                    while (TryMatch(processedLine, m_quotedBlockRegex, out var subQuotedMatch))
-                    {
-                        processedLine = subQuotedMatch.Groups[2].Value.Trim();
-                        newQuotedBlockLevel++;
-                    }
-                }
-
-                // Then we check if it's the start of a list item
+                string listPrefix = null;
                 var newListLevel = 0;
                 var startNewListItem = false;
-                string listPrefix = null;
-                if (TryMatch(processedLine, m_orderedContent, out var listMatch))
-                {
-                    var indentRaw = listMatch.Groups[1].Value;
-                    listPrefix = listMatch.Groups[2].Value;
-                    listPrefix = string.IsNullOrEmpty(listPrefix) ? "•" : listPrefix; // Normalize '-' and '*' to '•'
-                    processedLine = listMatch.Groups[3].Value;
+                var isNewQuotedBlockLevel = false;
+                var newQuotedBlockLevel = 0;
+                var codeBlockStarted = false;
+                var codeBlockEnded = false;
 
-                    newListLevel = Mathf.FloorToInt(indentRaw.Length / 2f) + 1;
-                    var matches = m_orderedCount.Matches(listPrefix);
-                    if (matches.Count > 0)
-                    {
-                        newListLevel = Mathf.Max(matches.Count, newListLevel);
-                    }
-                    startNewListItem = true;
+                if (TryMatch(processedLine, m_codeBlockRegex, out var codeBlockMatch))
+                {
+                    isCodeBlock = !isCodeBlock;
+                    codeBlockStarted = isCodeBlock;
+                    codeBlockEnded = !isCodeBlock;
                 }
 
-                // If it's not the start of a list item we process the indentation
-                // The indentation will give us information if the text belongs to the previous list item.
-                if (!startNewListItem && TryMatch(processedLine, m_indentationRegex, out var indentMatch))
+                // We don't process quotes, list and indentation in code block
+                if (!isCodeBlock)
                 {
-                    var indentRaw = indentMatch.Groups[1].Value;
-                    processedLine = indentMatch.Groups[2].Value;
-
-                    var indentationLevel = Mathf.FloorToInt(indentRaw.Length / 4f);
-                    // empty line are considered part of the previous list item
-                    if (string.IsNullOrWhiteSpace(processedLine) || indentationLevel == listLevel)
+                    // First we check if it's in a quoted block
+                    if (TryMatch(processedLine, m_quotedBlockRegex, out var quotedMatch))
                     {
-                        newListLevel = listLevel;
+                        processedLine = quotedMatch.Groups[2].Value.Trim();
+                        newQuotedBlockLevel = 1;
+                        while (TryMatch(processedLine, m_quotedBlockRegex, out var subQuotedMatch))
+                        {
+                            processedLine = subQuotedMatch.Groups[2].Value.Trim();
+                            newQuotedBlockLevel++;
+                        }
+                    }
+
+                    // Then we check if it's the start of a list item
+                    if (TryMatch(processedLine, m_orderedContent, out var listMatch))
+                    {
+                        var indentRaw = listMatch.Groups[1].Value;
+                        listPrefix = listMatch.Groups[2].Value;
+                        listPrefix =
+                            string.IsNullOrEmpty(listPrefix) ? "•" : listPrefix; // Normalize '-' and '*' to '•'
+                        processedLine = listMatch.Groups[3].Value;
+
+                        newListLevel = Mathf.FloorToInt(indentRaw.Length / 2f) + 1;
+                        var matches = m_orderedCount.Matches(listPrefix);
+                        if (matches.Count > 0)
+                        {
+                            newListLevel = Mathf.Max(matches.Count, newListLevel);
+                        }
+
+                        startNewListItem = true;
+                    }
+
+                    // If it's not the start of a list item we process the indentation
+                    // The indentation will give us information if the text belongs to the previous list item.
+                    if (!startNewListItem && TryMatch(processedLine, m_indentationRegex, out var indentMatch))
+                    {
+                        var indentRaw = indentMatch.Groups[1].Value;
+                        processedLine = indentMatch.Groups[2].Value;
+
+                        var indentationLevel = Mathf.FloorToInt(indentRaw.Length / 4f);
+                        // empty line are considered part of the previous list item
+                        if (string.IsNullOrWhiteSpace(processedLine) || indentationLevel == listLevel)
+                        {
+                            newListLevel = listLevel;
+                        }
                     }
                 }
 
-                var isNewQuotedBlockLevel = quotedBlockLevel != newQuotedBlockLevel;
-                var change = isNewQuotedBlockLevel || listLevel != newListLevel || startNewListItem;
+                isNewQuotedBlockLevel = quotedBlockLevel != newQuotedBlockLevel;
+                var change =
+                    isNewQuotedBlockLevel || listLevel != newListLevel || startNewListItem || codeBlockStarted;
                 if (change)
                 {
                     // When we detect a change we Draw the content we cumulated so far.
@@ -578,22 +640,28 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
                     _ = sb.Clear();
                 }
 
-
                 // Draw content end in order, if applicable
                 // 1. List
                 // 2. Quoted Block
                 if (startNewListItem || newListLevel != listLevel)
                 {
-                    DrawContentEnd(ContentType.List, listLevel, isNewQuotedBlockLevel ? 0 : newListLevel, processedLine);
+                    DrawContentEnd(
+                        ContentType.List, listLevel, isNewQuotedBlockLevel ? 0 : newListLevel, processedLine);
                 }
+
                 if (newQuotedBlockLevel != quotedBlockLevel)
                 {
                     DrawContentEnd(ContentType.Block, quotedBlockLevel, newQuotedBlockLevel, processedLine);
                 }
 
                 // Draw content start in order, if applicable
-                // 1. Quoted Block
-                // 2. List
+                // 1. Code Block
+                // 2. Quoted Block
+                // 3. List
+                if (codeBlockStarted)
+                {
+                    DrawContentStart(processedLine, ContentType.CodeBlock, 0, 0);
+                }
                 if (newQuotedBlockLevel != quotedBlockLevel)
                 {
                     if (newQuotedBlockLevel > 0)
@@ -601,9 +669,11 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
                         DrawContentStart(processedLine, ContentType.Block, quotedBlockLevel, newQuotedBlockLevel);
                     }
                 }
+
                 if (startNewListItem || newListLevel != listLevel)
                 {
-                    DrawContentStart(listPrefix, ContentType.List, isNewQuotedBlockLevel ? 0 : listLevel, newListLevel);
+                    DrawContentStart(
+                        listPrefix, ContentType.List, isNewQuotedBlockLevel ? 0 : listLevel, newListLevel);
                 }
 
                 // update the current levels
@@ -612,12 +682,22 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
                 // append the processed line to be drawn in the correct time
                 _ = sb.Append(processedLine);
                 _ = sb.Append("\n");
+
+                if (codeBlockEnded)
+                {
+                    var code = sb.ToString();
+                    DrawContent(code);
+                    _ = sb.Clear();
+                    DrawContentEnd(ContentType.CodeBlock, 0, 0, code);
+                }
             }
 
             // Final draw of leftover content
+            string finalText = null;
             if (sb.Length > 0)
             {
-                DrawContent(sb.ToString(), listLevel > 0 ? m_listTextStyle : null);
+                finalText = sb.ToString();
+                DrawContent(finalText, listLevel > 0 ? m_listTextStyle : null);
             }
 
             // Finalize any open content in order, if applicable
@@ -630,6 +710,11 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
             if (quotedBlockLevel > 0)
             {
                 DrawContentEnd(ContentType.Block, quotedBlockLevel, 0);
+            }
+
+            if (isCodeBlock)
+            {
+                DrawContentEnd(ContentType.CodeBlock, 0, 0, finalText);
             }
         }
 
@@ -695,6 +780,11 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
                         }
                     }
                     break;
+                case ContentType.CodeBlock:
+                    {
+                        DrawStartCodeBlock();
+                    }
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
@@ -728,6 +818,11 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
                                 DrawEndList(followingText);
                             }
                         }
+                    }
+                    break;
+                case ContentType.CodeBlock:
+                    {
+                        DrawEndCodeBlock(followingText);
                     }
                     break;
                 default:

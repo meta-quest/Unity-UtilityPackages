@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Meta.Tutorial.Framework.Hub.Attributes;
 using Meta.Tutorial.Framework.Hub.Pages;
@@ -9,6 +10,7 @@ using Meta.Tutorial.Framework.Hub.Pages.Markdown;
 using Meta.Tutorial.Framework.Hub.Parsing;
 using Meta.Tutorial.Framework.Hub.Utilities;
 using Meta.Tutorial.Framework.Windows;
+using UnityEditor;
 using UnityEngine;
 
 namespace Meta.Tutorial.Framework.Hub.Contexts
@@ -109,6 +111,22 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
 
         private string ReadTextFromFile(string path)
             => System.IO.File.ReadAllText(path);
+
+        public override void DeleteExistingPageReferences()
+        {
+            base.DeleteExistingPageReferences();
+
+            var allPages = Resources.FindObjectsOfTypeAll(typeof(MetaHubMarkdownPage));
+            var pagesForContext = allPages.Where(page => (page as MetaHubMarkdownPage)?.ContextRef == this);
+            foreach (var page in pagesForContext)
+            {
+                var path = AssetDatabase.GetAssetPath(page);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    _ = AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(page));
+                }
+            }
+        }
 
         public override PageReference[] CreatePageReferences(bool forceCreate = false)
         {

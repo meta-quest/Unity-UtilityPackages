@@ -23,6 +23,13 @@ https://github.com/meta-quest/Unity-UtilityPackages.git?path=com.meta.tutorial.f
 5. Once you are happy with the tutorial you’ve created, delete the pages folder that is created right next to the context files, and open the tutorial one more time to ensure all generated page assets have been correctly created and associated with all necessary components.  
 6. Disable tutorial editing mode using the menu item mentioned above. 
 
+### Regenerate pages
+You can always regenerate a page by pressing the **Generate** button in the inspector of the context while in Edit mode. It will delete all pages related to that context and generate the updated pages. This is useful when changing settings on the context.
+
+It is also possible to regenerate the all context related to a tutorial config with the **Generate All** button in the inspector of the TutorialConfig file.
+
+Finally you can also regenerate all config and their related contexts by using the **Meta > Tutorial Hub > Edit Tutorials > Regenerate All Configs** menu item.
+
 ## Components details
 ### Tutorial Config
 ![Tutorial Config](./documentation/images/TutCfg.png)

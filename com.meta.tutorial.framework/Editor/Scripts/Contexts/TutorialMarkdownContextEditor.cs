@@ -4,11 +4,6 @@ using Meta.Tutorial.Framework.Hub.Utilities;
 using UnityEditor;
 using UnityEngine;
 
-#if META_EDIT_TUTORIALS
-using System.Linq;
-using Meta.Tutorial.Framework.Hub.Pages.Markdown;
-#endif
-
 namespace Meta.Tutorial.Framework.Hub.Contexts
 {
 
@@ -47,18 +42,7 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
             EditorGUILayout.Space();
             if (GUILayout.Button("Generate"))
             {
-                // Remove all previous pages related to this context
-                var allPages = Resources.FindObjectsOfTypeAll(typeof(MetaHubMarkdownPage));
-                var pagesForContext = allPages.Where(page => (page as MetaHubMarkdownPage)?.ContextRef == context);
-                foreach (var page in pagesForContext)
-                {
-                    var path = AssetDatabase.GetAssetPath(page);
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(page));
-                    }
-                }
-                context.CreatePageReferences(true);
+                context.RegeneratePageReferences();
             }
             EditorGUILayout.Space();
 #endif

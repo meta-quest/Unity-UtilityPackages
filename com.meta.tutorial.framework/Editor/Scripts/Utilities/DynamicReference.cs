@@ -184,7 +184,7 @@ namespace Meta.Tutorial.Framework.Hub.Utilities
                 var allObjects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 foreach (var obj in allObjects)
                 {
-                    if (obj.activeInHierarchy == false && GetGameObjectPath(obj) == name)
+                    if (!obj.activeInHierarchy && GetGameObjectPath(obj) == name)
                     {
                         m_obj = obj;
                         break;

@@ -101,6 +101,18 @@ namespace Meta.Tutorial.Framework.Windows
             }
         }
 
+#if META_EDIT_TUTORIALS
+        [MenuItem("Meta/Tutorial Hub/Edit Tutorials/Regenerate All Configs", priority = 2)]
+#endif
+        private static void RegenerateAllConfigs()
+        {
+            var allConfigs = Resources.FindObjectsOfTypeAll(typeof(TutorialConfig));
+            foreach (var config in allConfigs)
+            {
+                (config as TutorialConfig)?.GenerateAllSubContexts();
+            }
+        }
+
         /// <summary>
         /// The title content for the window.
         /// </summary>

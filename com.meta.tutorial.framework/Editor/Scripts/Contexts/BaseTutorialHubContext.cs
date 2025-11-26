@@ -111,6 +111,25 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
         /// the first page should be considered as the parent, although its foldout path will not reflect that.</returns>
         public abstract PageReference[] CreatePageReferences(bool forceCreate = false);
 
+        /// <summary>
+        /// Deletes existing page references for the current context
+        /// </summary>
+        public virtual void DeleteExistingPageReferences()
+        {
+            // nothing to delete by default
+        }
+
+        /// <summary>
+        /// First delete the existing page references and then recreate them.
+        /// This ensure a fresh update of the pages.
+        /// </summary>
+        /// <returns></returns>
+        public PageReference[] RegeneratePageReferences()
+        {
+            DeleteExistingPageReferences();
+            return CreatePageReferences(true);
+        }
+
         public override int CompareTo(MetaHubContext other)
         {
             if (other is BaseTutorialHubContext)

@@ -17,6 +17,11 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
 #if META_EDIT_TUTORIALS
             base.OnInspectorGUI();
             EditorGUILayout.Space();
+
+            if (GUILayout.Button("Generate All"))
+            {
+                context.GenerateAllSubContexts();
+            }
 #endif
             if (GUILayout.Button("Open Tutorial Hub"))
             {
