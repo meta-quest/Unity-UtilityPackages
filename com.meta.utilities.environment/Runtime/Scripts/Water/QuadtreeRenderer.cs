@@ -132,19 +132,19 @@ namespace Meta.Utilities.Environment
                 // If a skirting range is required
                 if (m_skirtingSize > m_size)
                 {
-                    using (ListPool<Matrix4x4>.Get(out var skirtingMatrices))
-                    {
-                        var offsetMatrix = Matrix4x4.Translate(m_currentGridCenter);
-                        skirtingMatrices.Add(offsetMatrix * Matrix4x4.LookAt(Vector3.zero, new Vector3(0f, 0f, 1f), Vector3.up));
-                        skirtingMatrices.Add(offsetMatrix * Matrix4x4.LookAt(Vector3.zero, new Vector3(1f, 0f, 0f), Vector3.up));
-                        skirtingMatrices.Add(offsetMatrix * Matrix4x4.LookAt(Vector3.zero, new Vector3(0f, 0f, -1f), Vector3.up));
-                        skirtingMatrices.Add(offsetMatrix * Matrix4x4.LookAt(Vector3.zero, new Vector3(-1f, 0f, 0f), Vector3.up));
-                        foreach (var matrix in skirtingMatrices)
-                        {
-                            // These are drawn with DrawMesh so that they can cull individually and be depth sorted correctly
-                            Graphics.DrawMesh(m_skirtingMesh, matrix, Material, gameObject.layer, camera, 0, propertyBlock, ShadowCastingMode.Off, false, null, LightProbeUsage.Off);
-                        }
-                    }
+                    var rp = new RenderParams(Material);
+                    rp.camera = camera;
+                    rp.matProps = propertyBlock;
+                    rp.shadowCastingMode = ShadowCastingMode.Off;
+                    rp.layer = gameObject.layer;
+                    rp.receiveShadows = false;
+                    rp.lightProbeUsage = LightProbeUsage.Off;
+
+                    //Updated Graphics.DrawMesh to newer Graphics.RenderMesh. Graphics.DrawMesh is obsolete per the Unity documentation
+                    Graphics.RenderMesh(rp, m_skirtingMesh, 0, Matrix4x4.TRS(m_currentGridCenter, Quaternion.Euler(0f, 0f, 0f), Vector3.one));
+                    Graphics.RenderMesh(rp, m_skirtingMesh, 0, Matrix4x4.TRS(m_currentGridCenter, Quaternion.Euler(0f, 90f, 0f), Vector3.one));
+                    Graphics.RenderMesh(rp, m_skirtingMesh, 0, Matrix4x4.TRS(m_currentGridCenter, Quaternion.Euler(0f, 180f, 0f), Vector3.one));
+                    Graphics.RenderMesh(rp, m_skirtingMesh, 0, Matrix4x4.TRS(m_currentGridCenter, Quaternion.Euler(0f, 270f, 0f), Vector3.one));
                 }
             }
         }
