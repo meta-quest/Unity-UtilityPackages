@@ -132,15 +132,15 @@ namespace Meta.Utilities.Environment
                 // If a skirting range is required
                 if (m_skirtingSize > m_size)
                 {
-                    RenderParams rp = new RenderParams(Material);
+                    var rp = new RenderParams(Material);
                     rp.camera = camera;
-                    //rp.worldBounds //Let Graphics.RenderMesh use the mesh local bounds transformed to world space
                     rp.matProps = propertyBlock;
                     rp.shadowCastingMode = ShadowCastingMode.Off;
                     rp.layer = gameObject.layer;
                     rp.receiveShadows = false;
                     rp.lightProbeUsage = LightProbeUsage.Off;
 
+                    //Updated Graphics.DrawMesh to newer Graphics.RenderMesh. Graphics.DrawMesh is obsolete per the Unity documentation
                     Graphics.RenderMesh(rp, m_skirtingMesh, 0, Matrix4x4.TRS(m_currentGridCenter, Quaternion.Euler(0f, 0f, 0f), Vector3.one));
                     Graphics.RenderMesh(rp, m_skirtingMesh, 0, Matrix4x4.TRS(m_currentGridCenter, Quaternion.Euler(0f, 90f, 0f), Vector3.one));
                     Graphics.RenderMesh(rp, m_skirtingMesh, 0, Matrix4x4.TRS(m_currentGridCenter, Quaternion.Euler(0f, 180f, 0f), Vector3.one));
