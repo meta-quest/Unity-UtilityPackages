@@ -90,6 +90,109 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
             }
         }
 
+        /// <summary>
+        /// Result of preparing an image for display.
+        /// </summary>
+        private struct PreparedImage
+        {
+            public Texture2D Texture;
+            public float Width;
+            public float Height;
+            public bool ShowLoading;
+        }
+
+        /// <summary>
+        /// Prepares an image for display by loading it from cache or creating a new embedded image.
+        /// Handles sizing based on hyperlink properties and max width constraints.
+        /// </summary>
+        /// <param name="imagePath">Path to the image file.</param>
+        /// <param name="hyperlink">Hyperlink segment containing optional width/height properties.</param>
+        /// <param name="maxWidth">Maximum width constraint for the image.</param>
+        /// <param name="defaultSize">Default size when image is loading or unavailable.</param>
+        /// <returns>A PreparedImage struct containing the texture and calculated dimensions.</returns>
+        private PreparedImage PrepareImageForDisplay(
+            string imagePath,
+            ParsedMD.HyperlinkSegment hyperlink,
+            float maxWidth,
+            float defaultSize = 100f)
+        {
+            // Ensure image is cached and loading
+            if (!s_cachedImages.ContainsKey(imagePath))
+            {
+                var embeddedImage = new EmbeddedImage(imagePath);
+                s_cachedImages[imagePath] = embeddedImage;
+                embeddedImage.LoadImage();
+                DelayedRefresh();
+            }
+
+            m_embeddedImages[imagePath] = s_cachedImages[imagePath];
+
+            // Get texture and dimensions
+            Texture2D img = null;
+            var width = defaultSize;
+            var height = defaultSize;
+            var showLoading = true;
+
+            if (s_cachedImages.TryGetValue(imagePath, out var embeddedImage2) &&
+                embeddedImage2 != null &&
+                embeddedImage2.IsLoaded)
+            {
+                img = embeddedImage2.CurrentTexture;
+                if (img == null)
+                {
+                    embeddedImage2.LoadImage();
+                }
+                else
+                {
+                    showLoading = false;
+                    width = img.width;
+                    height = img.height;
+                }
+            }
+
+            if (showLoading || img == null)
+            {
+                img = EmptyTexture;
+                width = defaultSize;
+                height = defaultSize;
+            }
+
+            // Apply sizing from hyperlink properties
+            var aspectRatio = img.GetAspectRatio();
+            if (hyperlink?.Properties != null)
+            {
+                if (hyperlink.Properties.TryGetValue("width", out var widthStr))
+                {
+                    if (widthStr.Contains('%'))
+                    {
+                        var pct = float.Parse(widthStr.Replace("%", ""));
+                        var scaledWidth = maxWidth * pct / 100;
+                        width = showLoading ? scaledWidth : Mathf.Min(width, scaledWidth);
+                    }
+                    else
+                    {
+                        width = float.Parse(widthStr);
+                    }
+                    height = width / aspectRatio;
+                }
+            }
+
+            // Constrain to max width
+            if (width > maxWidth)
+            {
+                width = maxWidth;
+                height = width / aspectRatio;
+            }
+
+            return new PreparedImage
+            {
+                Texture = img,
+                Width = width,
+                Height = height,
+                ShowLoading = showLoading
+            };
+        }
+
         /// <inheritdoc cref="Editor.OnInspectorGUI()"/>
         public override void OnInspectorGUI()
         {
@@ -203,21 +306,24 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
             var imageSectionWidth = 0f;
             foreach (var segment in segments)
             {
-                if (segment is ParsedMD.HyperlinkSegment hyperlink)
+                if (segment is ParsedMD.TableSegment tableSegment)
+                {
+                    if (prevIsImage)
+                    {
+                        Draw(() =>
+                        {
+                            GUILayout.FlexibleSpace();
+                            EditorGUILayout.EndHorizontal();
+                        });
+                        prevIsImage = false;
+                    }
+                    DrawTable(tableSegment);
+                }
+                else if (segment is ParsedMD.HyperlinkSegment hyperlink)
                 {
                     if (hyperlink.IsImage)
                     {
                         var imagePath = hyperlink.URL;
-                        if (!s_cachedImages.ContainsKey(imagePath))
-                        {
-                            // the image path is always relative to the root of the project
-                            var embeddedImage = new EmbeddedImage(imagePath);
-                            s_cachedImages[imagePath] = embeddedImage;
-                            embeddedImage.LoadImage();
-                            DelayedRefresh();
-                        }
-
-                        m_embeddedImages[imagePath] = s_cachedImages[imagePath];
 
                         if (!prevIsImage)
                         {
@@ -230,57 +336,7 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
 
                         Draw(() =>
                         {
-                            Texture2D img = null;
-                            float width = 100;
-                            float height = 100;
-                            var showLoading = true;
-                            if (s_cachedImages.TryGetValue(imagePath, out var embeddedImage) && embeddedImage != null &&
-                                embeddedImage.IsLoaded)
-                            {
-                                img = embeddedImage.CurrentTexture;
-                                if (img == null)
-                                {
-                                    embeddedImage.LoadImage();
-                                }
-                                else
-                                {
-                                    showLoading = false;
-                                    width = img.width;
-                                    height = img.height;
-                                }
-                            }
-                            if (showLoading || img == null)
-                            {
-                                img = EmptyTexture;
-                                width = 100;
-                                height = 100;
-                            }
-
-                            var aspectRatio = img.GetAspectRatio();
-                            if (hyperlink.Properties != null)
-                            {
-                                if (hyperlink.Properties.TryGetValue("width", out var widthStr))
-                                {
-                                    if (widthStr.Contains('%'))
-                                    {
-                                        var pct = float.Parse(widthStr.Replace("%", ""));
-                                        var maxWidth = RenderedWindowWidth * pct / 100;
-                                        width = showLoading ? maxWidth : Mathf.Min(width, maxWidth);
-                                    }
-                                    else
-                                    {
-                                        width = float.Parse(widthStr);
-                                    }
-
-                                    height = width / aspectRatio;
-                                }
-                            }
-
-                            if (width > RenderedWindowWidth - PADDING)
-                            {
-                                width = RenderedWindowWidth - PADDING;
-                                height = width / aspectRatio;
-                            }
+                            var prepared = PrepareImageForDisplay(imagePath, hyperlink, RenderedWindowWidth - PADDING);
 
                             if (null == m_imageLabelStyle)
                             {
@@ -288,7 +344,7 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
                             }
 
                             // If next image would go beyond screen we create a new row
-                            if (imageSectionWidth + width >= RenderedWindowWidth - PADDING)
+                            if (imageSectionWidth + prepared.Width >= RenderedWindowWidth - PADDING)
                             {
                                 GUILayout.FlexibleSpace();
                                 EditorGUILayout.EndHorizontal();
@@ -296,17 +352,17 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
                                 imageSectionWidth = 0;
                             }
 
-                            var content = new GUIContent(img);
+                            var content = new GUIContent(prepared.Texture);
                             var imageLabelRect = GUILayoutUtility.GetRect(content, m_imageLabelStyle,
-                                GUILayout.Height(height), GUILayout.Width(width));
+                                GUILayout.Height(prepared.Height), GUILayout.Width(prepared.Width));
 
                             if (GUI.Button(imageLabelRect, content, m_imageLabelStyle))
                             {
-                                ImageViewer.ShowWindow(embeddedImage, Path.GetFileNameWithoutExtension(imagePath));
-                                Telemetry.OnImageClicked(markdownPage.TelemetryContext, markdownPage, img.name);
+                                ImageViewer.ShowWindow(s_cachedImages[imagePath], Path.GetFileNameWithoutExtension(imagePath));
+                                Telemetry.OnImageClicked(markdownPage.TelemetryContext, markdownPage, prepared.Texture.name);
                             }
 
-                            imageSectionWidth += width;
+                            imageSectionWidth += prepared.Width;
                         });
                         prevIsImage = true;
                     }
@@ -416,6 +472,354 @@ namespace Meta.Tutorial.Framework.Hub.Pages.Markdown
                     GUILayout.MaxWidth(RenderedWindowWidth)
                 );
             });
+        }
+
+        /// <summary>
+        /// Draws a markdown table as a Unity Editor table using rect-based layout.
+        /// </summary>
+        /// <param name="tableSegment">The table segment containing headers and rows.</param>
+        private void DrawTable(ParsedMD.TableSegment tableSegment)
+        {
+            var markdownPage = (MetaHubMarkdownPage)target;
+
+            Draw(() =>
+            {
+                GUILayout.Space(Styles.Markdown.SPACING);
+
+                var headerStyle = Styles.Markdown.TableHeader.Style;
+                var cellStyle = Styles.Markdown.TableCell.Style;
+                var maxTableWidth = RenderedWindowWidth - Styles.Markdown.PADDING - Styles.Markdown.SPACING;
+                var maxColumnWidth = maxTableWidth / tableSegment.ColumnCount;
+
+                // === PASS 1a: Calculate column widths first ===
+                var columnWidths = new float[tableSegment.ColumnCount];
+
+                for (var i = 0; i < tableSegment.ColumnCount; i++)
+                {
+                    // Check header width
+                    var headerText = MarkdownUtils.ParseMarkdown(tableSegment.Headers[i].RawText);
+                    var headerSize = headerStyle.CalcSize(new GUIContent(headerText));
+                    columnWidths[i] = Mathf.Min(headerSize.x + Styles.Markdown.TABLE_CELL_PADDING * 2, maxColumnWidth);
+
+                    // Check all row cells for this column
+                    foreach (var row in tableSegment.Rows)
+                    {
+                        if (i < row.Length)
+                        {
+                            var cellText = MarkdownUtils.ParseMarkdown(row[i].RawText);
+                            var cellSize = cellStyle.CalcSize(new GUIContent(cellText));
+                            var cellWidth = Mathf.Min(cellSize.x + Styles.Markdown.TABLE_CELL_PADDING * 2, maxColumnWidth);
+                            columnWidths[i] = Mathf.Max(columnWidths[i], cellWidth);
+                        }
+                    }
+                }
+
+                // === PASS 1b: Calculate row heights using column widths for proper text wrapping and images ===
+                var rowHeights = new float[tableSegment.Rows.Length];
+                var headerHeight = 0f;
+
+                // Store cell content heights for Pass 4 (avoid recalculating)
+                var headerContentHeights = new float[tableSegment.ColumnCount];
+                var cellContentHeights = new float[tableSegment.Rows.Length, tableSegment.ColumnCount];
+
+                // Calculate header height
+                for (var i = 0; i < tableSegment.ColumnCount; i++)
+                {
+                    var contentWidth = columnWidths[i] - Styles.Markdown.TABLE_CELL_PADDING * 2;
+                    var cellHeight = CalculateCellContentHeight(tableSegment.Headers[i], contentWidth, headerStyle);
+                    headerContentHeights[i] = cellHeight;
+                    headerHeight = Mathf.Max(headerHeight, cellHeight + Styles.Markdown.TABLE_CELL_PADDING * 2);
+                }
+
+                // Calculate each row's height based on the tallest cell (including images)
+                for (var rowIdx = 0; rowIdx < tableSegment.Rows.Length; rowIdx++)
+                {
+                    var row = tableSegment.Rows[rowIdx];
+                    for (var i = 0; i < row.Length && i < columnWidths.Length; i++)
+                    {
+                        var contentWidth = columnWidths[i] - Styles.Markdown.TABLE_CELL_PADDING * 2;
+                        var cellHeight = CalculateCellContentHeight(row[i], contentWidth, cellStyle);
+                        cellContentHeights[rowIdx, i] = cellHeight;
+                        rowHeights[rowIdx] = Mathf.Max(rowHeights[rowIdx], cellHeight + Styles.Markdown.TABLE_CELL_PADDING * 2);
+                    }
+                }
+
+                // Calculate total table dimensions
+                var totalTableWidth = 0f;
+                for (var i = 0; i < columnWidths.Length; i++)
+                {
+                    totalTableWidth += columnWidths[i];
+                }
+
+                var totalTableHeight = headerHeight + 1f; // +1 for header separator
+                for (var rowIdx = 0; rowIdx < rowHeights.Length; rowIdx++)
+                {
+                    totalTableHeight += rowHeights[rowIdx];
+                    if (rowIdx < rowHeights.Length - 1)
+                    {
+                        totalTableHeight += 1f; // Row separator
+                    }
+                }
+
+                // === PASS 2: Reserve space and get base rect ===
+                _ = EditorGUILayout.BeginHorizontal();
+                GUILayout.Space(Styles.Markdown.TABLE_LEFT_INDENT);
+
+                var tableRect = GUILayoutUtility.GetRect(totalTableWidth, totalTableHeight, GUILayout.ExpandWidth(false));
+
+                // === PASS 3: Draw backgrounds and separators ===
+                var currentY = tableRect.y;
+
+                // Draw header background
+                var headerRect = new Rect(tableRect.x, currentY, totalTableWidth, headerHeight);
+                EditorGUI.DrawRect(headerRect, Styles.Markdown.TableHeaderBackground);
+                currentY += headerHeight;
+
+                // Draw header separator
+                var headerSepRect = new Rect(tableRect.x, currentY, totalTableWidth, 1f);
+                EditorGUI.DrawRect(headerSepRect, Styles.Markdown.TableSeparatorColor);
+                currentY += 1f;
+
+                // Draw row backgrounds with alternating colors
+                for (var rowIdx = 0; rowIdx < tableSegment.Rows.Length; rowIdx++)
+                {
+                    var rowColor = rowIdx % 2 == 0
+                        ? Styles.Markdown.TableRowBackground
+                        : Styles.Markdown.TableRowAlternateBackground;
+
+                    var rowRect = new Rect(tableRect.x, currentY, totalTableWidth, rowHeights[rowIdx]);
+                    EditorGUI.DrawRect(rowRect, rowColor);
+                    currentY += rowHeights[rowIdx];
+
+                    // Draw row separator (except after last row)
+                    if (rowIdx < tableSegment.Rows.Length - 1)
+                    {
+                        var rowSepRect = new Rect(tableRect.x, currentY, totalTableWidth, 1f);
+                        EditorGUI.DrawRect(rowSepRect, Styles.Markdown.TableSeparatorColor);
+                        currentY += 1f;
+                    }
+                }
+
+                // Draw vertical separators between columns
+                var verticalX = tableRect.x;
+                for (var i = 0; i < columnWidths.Length - 1; i++)
+                {
+                    verticalX += columnWidths[i];
+                    var vertSepRect = new Rect(verticalX, tableRect.y, 1f, totalTableHeight);
+                    EditorGUI.DrawRect(vertSepRect, Styles.Markdown.TableSeparatorColor);
+                }
+
+                // === PASS 4: Draw cell content ===
+                currentY = tableRect.y;
+
+                // Draw header cells
+                var currentX = tableRect.x;
+                for (var i = 0; i < tableSegment.Headers.Length; i++)
+                {
+                    var cellRect = new Rect(
+                        currentX + Styles.Markdown.TABLE_CELL_PADDING,
+                        currentY + Styles.Markdown.TABLE_CELL_PADDING,
+                        columnWidths[i] - Styles.Markdown.TABLE_CELL_PADDING * 2,
+                        headerHeight - Styles.Markdown.TABLE_CELL_PADDING * 2
+                    );
+                    DrawTableCellRect(tableSegment.Headers[i], cellRect, true, markdownPage, headerContentHeights[i]);
+                    currentX += columnWidths[i];
+                }
+                currentY += headerHeight + 1f; // +1 for separator
+
+                // Draw data rows
+                for (var rowIdx = 0; rowIdx < tableSegment.Rows.Length; rowIdx++)
+                {
+                    var row = tableSegment.Rows[rowIdx];
+                    currentX = tableRect.x;
+
+                    for (var i = 0; i < row.Length; i++)
+                    {
+                        var cellRect = new Rect(
+                            currentX + Styles.Markdown.TABLE_CELL_PADDING,
+                            currentY + Styles.Markdown.TABLE_CELL_PADDING,
+                            columnWidths[i] - Styles.Markdown.TABLE_CELL_PADDING * 2,
+                            rowHeights[rowIdx] - Styles.Markdown.TABLE_CELL_PADDING * 2
+                        );
+                        DrawTableCellRect(row[i], cellRect, false, markdownPage, cellContentHeights[rowIdx, i]);
+                        currentX += columnWidths[i];
+                    }
+
+                    currentY += rowHeights[rowIdx];
+                    if (rowIdx < tableSegment.Rows.Length - 1)
+                    {
+                        currentY += 1f; // Row separator
+                    }
+                }
+
+                // Draw table border
+                var borderRect = new Rect(tableRect.x, tableRect.y, totalTableWidth, totalTableHeight);
+                DrawRectBorder(borderRect, Styles.Markdown.TableSeparatorColor);
+
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.EndHorizontal();
+
+                GUILayout.Space(Styles.Markdown.SPACING);
+            });
+        }
+
+        /// <summary>
+        /// Draws a rect border (outline only, no fill).
+        /// </summary>
+        private void DrawRectBorder(Rect rect, Color color, float thickness = 1f)
+        {
+            // Top
+            EditorGUI.DrawRect(new Rect(rect.x, rect.y, rect.width, thickness), color);
+            // Bottom
+            EditorGUI.DrawRect(new Rect(rect.x, rect.yMax - thickness, rect.width, thickness), color);
+            // Left
+            EditorGUI.DrawRect(new Rect(rect.x, rect.y, thickness, rect.height), color);
+            // Right
+            EditorGUI.DrawRect(new Rect(rect.xMax - thickness, rect.y, thickness, rect.height), color);
+        }
+
+        /// <summary>
+        /// Calculates the height of a table cell's content, including text and images.
+        /// </summary>
+        private float CalculateCellContentHeight(ParsedMD.TableCell cell, float contentWidth, GUIStyle textStyle)
+        {
+            var totalHeight = 0f;
+
+            foreach (var segment in cell.Segments)
+            {
+                if (segment is ParsedMD.HyperlinkSegment hyperlink)
+                {
+                    if (hyperlink.IsImage)
+                    {
+                        // Get image dimensions
+                        var prepared = PrepareImageForDisplay(hyperlink.URL, hyperlink, contentWidth, defaultSize: 50f);
+                        totalHeight += prepared.Height;
+                    }
+                    else
+                    {
+                        // Hyperlink text height
+                        var linkText = hyperlink.Text;
+                        var linkHeight = m_linkStyle != null
+                            ? m_linkStyle.CalcHeight(new GUIContent(linkText), contentWidth)
+                            : textStyle.CalcHeight(new GUIContent(linkText), contentWidth);
+                        totalHeight += linkHeight;
+                    }
+                }
+                else
+                {
+                    // Regular text height with word wrapping
+                    var parsedText = MarkdownUtils.ParseMarkdown(segment.Text);
+                    if (!string.IsNullOrEmpty(parsedText))
+                    {
+                        var textHeight = textStyle.CalcHeight(new GUIContent(parsedText), contentWidth);
+                        totalHeight += textHeight;
+                    }
+                }
+            }
+
+            return Mathf.Max(totalHeight, textStyle.lineHeight);
+        }
+
+        /// <summary>
+        /// Draws a single table cell with support for text, hyperlinks, and images using rect-based positioning.
+        /// </summary>
+        /// <param name="cell">The table cell to draw.</param>
+        /// <param name="cellRect">The rect to draw the cell in (excluding padding).</param>
+        /// <param name="isHeader">Whether this is a header cell.</param>
+        /// <param name="markdownPage">The markdown page for telemetry.</param>
+        /// <param name="preCalculatedContentHeight">Pre-calculated content height from Pass 1b to avoid recalculation.</param>
+        private void DrawTableCellRect(ParsedMD.TableCell cell, Rect cellRect, bool isHeader, MetaHubMarkdownPage markdownPage, float preCalculatedContentHeight)
+        {
+            var style = isHeader ? Styles.Markdown.TableHeader.Style : Styles.Markdown.TableCell.Style;
+
+            // Use pre-calculated content height for vertical centering
+            var startY = cellRect.y + (cellRect.height - preCalculatedContentHeight) / 2f;
+            var currentY = startY;
+
+            foreach (var segment in cell.Segments)
+            {
+                if (segment is ParsedMD.HyperlinkSegment hyperlink)
+                {
+                    if (hyperlink.IsImage)
+                    {
+                        var prepared = PrepareImageForDisplay(hyperlink.URL, hyperlink, cellRect.width, defaultSize: 50f);
+                        var imageRect = new Rect(
+                            cellRect.x + (cellRect.width - prepared.Width) / 2f,
+                            currentY,
+                            prepared.Width,
+                            prepared.Height
+                        );
+                        DrawTableCellImageAtRect(hyperlink, imageRect, markdownPage);
+                        currentY += prepared.Height;
+                    }
+                    else
+                    {
+                        var linkSize = m_linkStyle.CalcSize(new GUIContent(hyperlink.Text));
+                        var linkRect = new Rect(
+                            cellRect.x + (cellRect.width - linkSize.x) / 2f,
+                            currentY,
+                            linkSize.x,
+                            linkSize.y
+                        );
+                        DrawTableCellHyperlinkAtRect(hyperlink, linkRect);
+                        currentY += linkSize.y;
+                    }
+                }
+                else
+                {
+                    var parsedText = MarkdownUtils.ParseMarkdown(segment.Text);
+                    if (!string.IsNullOrEmpty(parsedText))
+                    {
+                        var textHeight = style.CalcHeight(new GUIContent(parsedText), cellRect.width);
+                        var textRect = new Rect(cellRect.x, currentY, cellRect.width, textHeight);
+                        EditorGUI.SelectableLabel(textRect, parsedText, style);
+                        currentY += textHeight;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Draws an image at a specific rect within a table cell.
+        /// </summary>
+        private void DrawTableCellImageAtRect(ParsedMD.HyperlinkSegment hyperlink, Rect imageRect, MetaHubMarkdownPage markdownPage)
+        {
+            var imagePath = hyperlink.URL;
+            var prepared = PrepareImageForDisplay(imagePath, hyperlink, imageRect.width, defaultSize: 50f);
+
+            if (null == m_imageLabelStyle)
+            {
+                m_imageLabelStyle = Styles.Markdown.ImageLabel.Style;
+            }
+
+            var content = new GUIContent(prepared.Texture);
+
+            if (GUI.Button(imageRect, content, m_imageLabelStyle))
+            {
+                ImageViewer.ShowWindow(s_cachedImages[imagePath], Path.GetFileNameWithoutExtension(imagePath));
+                Telemetry.OnImageClicked(markdownPage.TelemetryContext, markdownPage, prepared.Texture.name);
+            }
+        }
+
+        /// <summary>
+        /// Draws a hyperlink at a specific rect within a table cell.
+        /// </summary>
+        private void DrawTableCellHyperlinkAtRect(ParsedMD.HyperlinkSegment hyperlink, Rect linkRect)
+        {
+            var url = hyperlink.URL;
+            var linkContent = $"<color={Styles.DefaultLinkColor}>" + hyperlink.Text + "</color>";
+
+            if (GUI.Button(linkRect, linkContent, m_linkStyle))
+            {
+                if (url.StartsWith('.'))
+                {
+                    if (url.EndsWith(".cs"))
+                    {
+                        MarkdownUtils.NavigateToSourceFile(url);
+                    }
+                }
+                Application.OpenURL(url);
+            }
         }
 
         /// <summary>

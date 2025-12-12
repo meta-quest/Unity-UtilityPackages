@@ -550,10 +550,70 @@ namespace Meta.Tutorial.Framework.Hub.UIComponents
             public const int LIST_SPACING = 2;
             public const int BOX_SPACING = 8;
             public const int LIST_SPACING_HALF = 1;
+            public const int TABLE_CELL_PADDING = 4;
+            public const int TABLE_CELL_IMAGE_MARGIN = 8;
+            public const int TABLE_LEFT_INDENT = SPACING + 4;
 
             public static readonly TextStyle Text = new(
                 padding: new RectOffset(SPACING, 0, 0, 0),
                 style: DefaultBodyStyle
+            );
+
+            public static readonly RectStyle Table = new(
+                style: new GUIStyle(EditorStyles.helpBox)
+                {
+                    padding = new RectOffset(0,0,0,0),
+                    margin = new RectOffset(0,0,0,0),
+                }
+            );
+
+            /// <summary>
+            /// Background color for table header row.
+            /// </summary>
+            public static Color TableHeaderBackground => EditorGUIUtility.isProSkin
+                ? new Color(0.25f, 0.25f, 0.25f, 1f)
+                : new Color(0.85f, 0.85f, 0.85f, 1f);
+
+            /// <summary>
+            /// Background color for even table rows.
+            /// </summary>
+            public static Color TableRowBackground => EditorGUIUtility.isProSkin
+                ? new Color(0.22f, 0.22f, 0.22f, 1f)
+                : new Color(0.92f, 0.92f, 0.92f, 1f);
+
+            /// <summary>
+            /// Background color for odd table rows (alternating).
+            /// </summary>
+            public static Color TableRowAlternateBackground => EditorGUIUtility.isProSkin
+                ? new Color(0.18f, 0.18f, 0.18f, 1f)
+                : new Color(0.88f, 0.88f, 0.88f, 1f);
+
+            /// <summary>
+            /// Color for table separators/borders.
+            /// </summary>
+            public static readonly Color TableSeparatorColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+
+            public static readonly TextStyle TableCell = new(
+                style: new GUIStyle(DefaultBodyStyle)
+                {
+                    wordWrap = true,
+                    alignment = TextAnchor.MiddleCenter,
+                    padding = new RectOffset(0,0,0,0),
+                    margin = new RectOffset(0,0,0,0),
+                    //padding = new RectOffset(TABLE_CELL_PADDING, TABLE_CELL_PADDING, TABLE_CELL_PADDING, TABLE_CELL_PADDING)
+                }
+            );
+
+            public static readonly TextStyle TableHeader = new(
+                style: new GUIStyle(DefaultBodyStyle)
+                {
+                    wordWrap = false,
+                    alignment = TextAnchor.MiddleCenter,
+                    fontStyle = FontStyle.Bold,
+                    padding = new RectOffset(0,0,0,0),
+                    margin = new RectOffset(0,0,0,0),
+                    //padding = new RectOffset(TABLE_CELL_PADDING, TABLE_CELL_PADDING, TABLE_CELL_PADDING, TABLE_CELL_PADDING)
+                }
             );
 
             public static readonly TextStyle Hyperlink = new(

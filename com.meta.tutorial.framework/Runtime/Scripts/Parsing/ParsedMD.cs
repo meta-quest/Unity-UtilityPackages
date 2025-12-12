@@ -186,10 +186,37 @@ namespace Meta.Tutorial.Framework.Hub.Parsing
 
             public HyperlinkSegment(string text, string url, string altText = null, Dictionary<string, string> properties = null) : base(text)
             {
-                URL = url.ToLower();
+                URL = url;
                 AltText = altText ?? text;
-                IsImage = URL.EndsWith(".png") || URL.EndsWith(".jpg") || URL.EndsWith(".jpeg") || URL.EndsWith(".gif");
+                var urlLower = url.ToLower();
+                IsImage = urlLower.EndsWith(".png") || urlLower.EndsWith(".jpg") || urlLower.EndsWith(".jpeg") || urlLower.EndsWith(".gif");
                 m_properties = properties;
+            }
+        }
+
+        public class TableCell
+        {
+            public readonly Segment[] Segments;
+            public readonly string RawText;
+
+            public TableCell(string rawText, Segment[] segments)
+            {
+                RawText = rawText;
+                Segments = segments;
+            }
+        }
+
+        public class TableSegment : Segment
+        {
+            public readonly TableCell[] Headers;
+            public readonly TableCell[][] Rows;
+            public readonly int ColumnCount;
+
+            public TableSegment(TableCell[] headers, List<TableCell[]> rows) : base(string.Empty)
+            {
+                Headers = headers;
+                Rows = rows.ToArray();
+                ColumnCount = headers.Length;
             }
         }
 
@@ -343,13 +370,52 @@ namespace Meta.Tutorial.Framework.Hub.Parsing
             m_pathRoot = Path.GetDirectoryName(filePath);
         }
 
+        private static readonly Regex s_tableRowRegex = new(@"^\s*\|(.+)\|\s*$", RegexOptions.Compiled);
+        private static readonly Regex s_tableSeparatorRegex = new(@"^\s*\|[\s\-:|]+\|\s*$", RegexOptions.Compiled);
+        private static readonly Regex s_cellHyperlinkRegex = new(@"(!?\[([^\]]*)\]\(([^)\s]+)(?:\s+""([^""]*)"")?\)(?:\{style=""([^""]*)""\})?)", RegexOptions.Compiled);
+        private static readonly Regex s_parentDirRegex = new(@"/[^\./]+/\.\./", RegexOptions.Compiled);
+
+        /// <summary>
+        /// Normalizes a URL by converting relative paths to absolute paths and resolving parent directory references.
+        /// </summary>
+        private string NormalizeUrl(string url)
+        {
+            if (url.StartsWith("http"))
+            {
+                return url;
+            }
+
+            url = Path.Combine(m_pathRoot, url).Replace("\\", "/");
+            url = url.Replace("/./", "/");
+
+            var prevUrl = url;
+            do
+            {
+                prevUrl = url;
+                url = s_parentDirRegex.Replace(url, "/");
+            } while (prevUrl != url);
+
+            var indexOfAssets = url.IndexOf("Assets/");
+            if (indexOfAssets > -1)
+            {
+                url = "./" + url[indexOfAssets..];
+            }
+
+            return url;
+        }
+
         private void ParseMDSegments(string markdown)
         {
             m_segments = new List<Segment>();
+
+            // First, extract tables from the markdown and replace them with placeholders
+            var tableSegments = new List<TableSegment>();
+            markdown = ExtractTables(markdown, tableSegments);
+
             var split = markdown.Split("]("); // split on the middle of a hyperlink, ex.: [text](url "alt text") or [text](url)
             if (split.Length == 1) // no hyperlinks in the markdown, just one segment
             {
-                m_segments.Add(new Segment(markdown));
+                AddSegmentWithTablePlaceholders(markdown, tableSegments);
                 return;
             }
 
@@ -393,32 +459,237 @@ namespace Meta.Tutorial.Framework.Hub.Parsing
                 var url = urlAndAlt[0];
                 var alt = urlAndAlt.Length > 1 ? urlAndAlt[1] : "";
 
-                if (!url.StartsWith("http"))
-                {
-                    url = Path.Combine(m_pathRoot, url).Replace("\\", "/");
-                    url = url.Replace("/./", "/"); // remove repeating './././' from the URL, leaving one
-                    // process path to remove all "../"
-                    var prevUrl = url;
-                    do
-                    {
-                        prevUrl = url;
-                        url = Regex.Replace(url, @"/[^\./]+/\.\./", "/");
-                    } while (prevUrl != url);
+                url = NormalizeUrl(url);
 
-                    var indexOfAssets = url.IndexOf("Assets/");
-                    if (indexOfAssets > -1)
-                    {
-                        url = "./" + url[indexOfAssets..];
-                    }
-                }
-
-                m_segments.Add(new Segment(prev[..hyperlinkStart]));
+                AddSegmentWithTablePlaceholders(prev[..hyperlinkStart], tableSegments);
                 m_segments.Add(new HyperlinkSegment(label, url, alt, properties));
                 split[i] = next[(hyperlinkEnd + 1)..]; // remove the hyperlink from the next segment
 
                 if (i == split.Length - 1) // if this is the last split, add the remaining text as a segment
                 {
-                    m_segments.Add(new Segment(split[i]));
+                    AddSegmentWithTablePlaceholders(split[i], tableSegments);
+                }
+            }
+        }
+
+        private string ExtractTables(string markdown, List<TableSegment> tableSegments)
+        {
+            var lines = markdown.Split('\n');
+            var result = new StringBuilder();
+            var tableLines = new List<string>();
+            var inTable = false;
+
+            for (var i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                var isTableRow = s_tableRowRegex.IsMatch(line);
+
+                if (isTableRow)
+                {
+                    if (!inTable)
+                    {
+                        // Check if next line is a separator (to confirm this is a table header)
+                        if (i + 1 < lines.Length && s_tableSeparatorRegex.IsMatch(lines[i + 1]))
+                        {
+                            inTable = true;
+                            tableLines.Clear();
+                            tableLines.Add(line);
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        tableLines.Add(line);
+                        continue;
+                    }
+                }
+                else if (inTable)
+                {
+                    // End of table - parse and create TableSegment
+                    var tableSegment = ParseTableLines(tableLines);
+                    if (tableSegment != null)
+                    {
+                        tableSegments.Add(tableSegment);
+                        _ = result.Append($"__TABLE_PLACEHOLDER_{tableSegments.Count - 1}__\n");
+                    }
+                    inTable = false;
+                    tableLines.Clear();
+                }
+
+                if (!inTable)
+                {
+                    _ = result.Append(line);
+                    if (i < lines.Length - 1)
+                    {
+                        _ = result.Append('\n');
+                    }
+                }
+            }
+
+            // Handle table at end of document
+            if (inTable && tableLines.Count > 0)
+            {
+                var tableSegment = ParseTableLines(tableLines);
+                if (tableSegment != null)
+                {
+                    tableSegments.Add(tableSegment);
+                    _ = result.Append($"__TABLE_PLACEHOLDER_{tableSegments.Count - 1}__");
+                }
+            }
+
+            return result.ToString();
+        }
+
+        private TableSegment ParseTableLines(List<string> tableLines)
+        {
+            if (tableLines.Count < 2)
+            {
+                return null;
+            }
+
+            // Parse header row
+            var headerLine = tableLines[0];
+            var headerStrings = ParseTableRow(headerLine);
+            if (headerStrings == null || headerStrings.Length == 0)
+            {
+                return null;
+            }
+
+            // Convert header strings to TableCells
+            var headers = headerStrings.Select(h => ParseCellContent(h)).ToArray();
+
+            // Skip separator row (index 1) and parse data rows
+            var rows = new List<TableCell[]>();
+            for (var i = 2; i < tableLines.Count; i++)
+            {
+                var rowCells = ParseTableRow(tableLines[i]);
+                if (rowCells != null)
+                {
+                    // Ensure row has same number of columns as headers
+                    TableCell[] parsedRow;
+                    if (rowCells.Length != headers.Length)
+                    {
+                        parsedRow = new TableCell[headers.Length];
+                        for (var j = 0; j < headers.Length; j++)
+                        {
+                            parsedRow[j] = j < rowCells.Length
+                                ? ParseCellContent(rowCells[j])
+                                : new TableCell("", new[] { new Segment("") });
+                        }
+                    }
+                    else
+                    {
+                        parsedRow = rowCells.Select(c => ParseCellContent(c)).ToArray();
+                    }
+                    rows.Add(parsedRow);
+                }
+            }
+
+            return new TableSegment(headers, rows);
+        }
+
+        private TableCell ParseCellContent(string cellContent)
+        {
+            var segments = new List<Segment>();
+            var remaining = cellContent;
+
+            var lastIndex = 0;
+            var matches = s_cellHyperlinkRegex.Matches(remaining);
+
+            foreach (Match match in matches)
+            {
+                // Add text before the match
+                if (match.Index > lastIndex)
+                {
+                    var textBefore = remaining[lastIndex..match.Index];
+                    if (!string.IsNullOrEmpty(textBefore))
+                    {
+                        segments.Add(new Segment(textBefore));
+                    }
+                }
+
+                var label = match.Groups[2].Value;
+                var url = match.Groups[3].Value;
+                var alt = match.Groups[4].Success ? match.Groups[4].Value : "";
+                var styleStr = match.Groups[5].Success ? match.Groups[5].Value : null;
+
+                Dictionary<string, string> properties = null;
+                if (!string.IsNullOrEmpty(styleStr))
+                {
+                    properties = styleStr
+                        .Split(';')
+                        .Where(s => s.Contains(':'))
+                        .Select(s => s.Split(':'))
+                        .ToDictionary(s => s[0].Trim(), s => s[1].Trim());
+                }
+
+                url = NormalizeUrl(url);
+
+                segments.Add(new HyperlinkSegment(label, url, alt, properties));
+                lastIndex = match.Index + match.Length;
+            }
+
+            // Add remaining text after the last match
+            if (lastIndex < remaining.Length)
+            {
+                var textAfter = remaining[lastIndex..];
+                if (!string.IsNullOrEmpty(textAfter))
+                {
+                    segments.Add(new Segment(textAfter));
+                }
+            }
+
+            // If no segments were added, add the original content as a single segment
+            if (segments.Count == 0)
+            {
+                segments.Add(new Segment(cellContent));
+            }
+
+            return new TableCell(cellContent, segments.ToArray());
+        }
+
+        private string[] ParseTableRow(string line)
+        {
+            var match = s_tableRowRegex.Match(line);
+            if (!match.Success)
+            {
+                return null;
+            }
+
+            var content = match.Groups[1].Value;
+            var cells = content.Split('|');
+            return cells.Select(c => c.Trim()).ToArray();
+        }
+
+        private void AddSegmentWithTablePlaceholders(string text, List<TableSegment> tableSegments)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            // Check for table placeholders and split accordingly
+            var placeholderPattern = @"__TABLE_PLACEHOLDER_(\d+)__";
+            var parts = Regex.Split(text, placeholderPattern);
+
+            for (var i = 0; i < parts.Length; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    // Regular text segment
+                    if (!string.IsNullOrEmpty(parts[i]))
+                    {
+                        m_segments.Add(new Segment(parts[i]));
+                    }
+                }
+                else
+                {
+                    // Table index
+                    var tableIndex = int.Parse(parts[i]);
+                    if (tableIndex < tableSegments.Count)
+                    {
+                        m_segments.Add(tableSegments[tableIndex]);
+                    }
                 }
             }
         }
