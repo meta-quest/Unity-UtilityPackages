@@ -753,8 +753,14 @@ namespace Meta.Tutorial.Framework.Hub.Parsing
                         if (line[i] == '[')
                         {
                             var end = line.IndexOf(']', i);
+                            if (end == -1)
+                                continue;
                             var urlStart = line.IndexOf('(', end);
+                            if (urlStart == -1)
+                                continue;
                             var urlEnd = line.IndexOf(')', urlStart);
+                            if (urlEnd == -1)
+                                continue;
 
                             var urlWithAlt = line[(urlStart + 1)..urlEnd].Trim().Split('"');
                             var url = urlWithAlt[0].Trim();
