@@ -1,6 +1,6 @@
 {
   "name": "com.meta.utilities.viewport-renderer",
   "displayName": "Meta Utilities - Viewport Renderer",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Nested viewport rendering without intermediate textures"
 }

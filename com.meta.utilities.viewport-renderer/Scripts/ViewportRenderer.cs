@@ -125,7 +125,12 @@ namespace Meta.Utilities.ViewportRenderer
                         for (var i = 0; i < 2; i++)
                         {
                             var eyeProj = AdjustProjection(projection, eyeRects[i]);
-                            XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(view, eyeProj, true, i, false, Matrix4x4.identity);
+#if URP_15_OR_NEWER
+                            XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(view, eyeProj, true, i);
+#else
+                            XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(
+                                view, eyeProj, true, i, false, Matrix4x4.identity);
+#endif
                         }
                         XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
                     }
