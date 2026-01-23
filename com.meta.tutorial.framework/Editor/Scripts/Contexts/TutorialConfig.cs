@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Meta.Tutorial.Framework.Hub.UIComponents;
 using Meta.Tutorial.Framework.Hub.Utilities;
+using Meta.Tutorial.Framework.Windows;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -35,6 +36,12 @@ namespace Meta.Tutorial.Framework.Hub.Contexts
             {
                 _ = ((context as BaseTutorialHubContext)?.RegeneratePageReferences());
             }
+        }
+
+        [ContextMenu("Toggle Edit Mode")]
+        private void ToggleEditMode()
+        {
+            TutorialFrameworkHub.ToggleEditTutorials();
         }
 
         [Serializable]

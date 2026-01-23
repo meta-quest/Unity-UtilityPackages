@@ -71,21 +71,26 @@ namespace Meta.Tutorial.Framework.Windows
         // Devs who want to author new tutorials should manually add "META_EDIT_TUTORIALS" to the project's Scripting Define Symbols.
         /*
         [MenuItem("Meta/Tutorial Hub/Toggle Edit Tutorials/Enable", priority = 1)]
+        */
         private static void EnableEditTutorials()
         {
             ToggleEditTutorials(true);
         }
-        */
 
 #if META_EDIT_TUTORIALS
         [MenuItem("Meta/Tutorial Hub/Edit Tutorials/Disable", priority = 2)]
 #endif
-        private static void DisableEditTutorials()
+        internal static void DisableEditTutorials()
         {
             ToggleEditTutorials(false);
         }
 
-        private static void ToggleEditTutorials(bool bEnabled)
+        internal static void ToggleEditTutorials()
+        {
+            ToggleEditTutorials(!IsEditModeEnabled());
+        }
+
+        internal static void ToggleEditTutorials(bool bEnabled)
         {
             // add EDIT_TUTORIALS to the list of defines
             var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
@@ -99,6 +104,12 @@ namespace Meta.Tutorial.Framework.Windows
                 defines = defines.Replace(";META_EDIT_TUTORIALS", "");
                 PlayerSettings.SetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup, defines);
             }
+        }
+
+        internal static bool IsEditModeEnabled()
+        {
+            var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+            return defines.Contains("META_EDIT_TUTORIALS");
         }
 
 #if META_EDIT_TUTORIALS
