@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.2] - 2026-10-23
+
+### Fixed
+
+- Removed git merge conflict markers from `Networking.meta`, which made Unity warn that it could not parse the file.
+
 ## [1.1.0] - 2023-04-17
 
 ### Added
