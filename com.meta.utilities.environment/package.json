@@ -1,6 +1,6 @@
 {
   "name": "com.meta.utilities.environment",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "displayName": "Meta Utilities - Environment System",
   "description": "The environment system used by the North Star graphics showcase, including clouds, weather systems and a dynamically simulated ocean",
   "hideInEditor": false,

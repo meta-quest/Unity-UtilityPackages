@@ -511,6 +511,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
+#if UNITY_6000_3_OR_NEWER
+                // URP 17.3 moved multi_compile_fog from CorePragmas.Forward into this include.
+                { CoreIncludes.FogPregraph },
+#endif
                 { CoreIncludes.WriteRenderLayersPregraph },
                 { CoreIncludes.CorePregraph },
                 { kShadows, IncludeLocation.Pregraph },
