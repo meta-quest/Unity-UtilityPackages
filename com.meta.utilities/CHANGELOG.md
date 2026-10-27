@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.3] - 2026-10-27
+
+### Fixed
+
+- "Tools/PSO Cache/Save Vulkan PSO Cache" now works with Unity 6. Unity 6 stores the Vulkan pipeline cache in the app's internal cache folder (`/data/user/0/<package>/cache`) instead of `/sdcard/Android/data/<package>/cache`, so the tool now reads it from there (with `run-as` on Development builds, or directly when adb runs as root), checks that the file is a valid cache, and warns when it was made by another Unity version. Older Unity versions keep the previous behavior.
+
 ## [1.1.0] - 2023-04-17
 
 ### Added
