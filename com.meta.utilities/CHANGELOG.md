@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.4] - 2026-10-27
+
+### Changed
+
+- "Tools/PSO Cache/Save Vulkan PSO Cache" picks the headset to read from on Unity 6: the connected headset matching the menu item (Quest 2 or Quest 3), even when several are connected. It doesn't save from a headset of another model (its cache would be ignored on the target headset) unless `ANDROID_SERIAL` selects that headset, and explains what to do when it can't choose.
+- When the cache can't be read, the log now includes adb's short output (for example "run-as: package not debuggable") instead of only its size.
+
 ## [1.1.3] - 2026-10-27
 
 ### Fixed
