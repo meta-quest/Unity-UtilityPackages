@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-10-29
+
+### Added
+
+- Render Graph support for URP 17 (Unity 6): `SphereMaskRenderer`'s pass implements `RecordRenderGraph`. With Render Graph, URP skips passes that only implement `Execute`, so the sphere mask didn't draw. `Execute` is kept for Compatibility Mode; on URP 17.3 and newer it only compiles when the project defines `URP_COMPATIBILITY_MODE`, as URP requires.
+
 ## [1.0.2] - 2026-10-23
 
 ### Fixed

@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.XR;
+#if URP_17_OR_NEWER
+using UnityEngine.Rendering.RenderGraphModule;
+#endif
 
 namespace Meta.Utilities.Environment
 {
@@ -49,6 +52,7 @@ namespace Meta.Utilities.Environment
                 ConfigureInput(ScriptableRenderPassInput.Depth);
             }
 
+#if !URP_17_3_OR_NEWER || URP_COMPATIBILITY_MODE
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
                 ref var cameraData = ref renderingData.cameraData;
@@ -66,7 +70,56 @@ namespace Meta.Utilities.Environment
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
+#endif
 
+#if URP_17_OR_NEWER
+            private class PassData
+            {
+                internal Material Material;
+                internal Vector3 SpherePosition;
+                internal float Intensity;
+                internal Vector4 DistanceMinMax;
+            }
+
+            // Render Graph version of Execute: the same full-screen draw over the camera color, after the depth texture is available.
+            public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+            {
+                var cameraData = frameData.Get<UniversalCameraData>();
+                if (cameraData.cameraType is not CameraType.Game and not CameraType.SceneView) return;
+                var resourceData = frameData.Get<UniversalResourceData>();
+
+                using var builder = renderGraph.AddRasterRenderPass<PassData>("SphereMask", out var passData);
+                passData.Material = m_renderer.m_screenMaterial;
+                passData.SpherePosition = m_renderer.transform.position;
+                passData.Intensity = m_renderer.Intensity;
+                passData.DistanceMinMax = new Vector4(
+                    m_renderer.m_maskingMinMax.x, m_renderer.m_maskingMinMax.y,
+                    m_renderer.m_fogMinMax.x, m_renderer.m_fogMinMax.y);
+
+                builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
+                if (resourceData.cameraDepthTexture.IsValid())
+                    builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
+                builder.AllowGlobalStateModification(true);
+                if (cameraData.xr.enabled)
+                {
+                    // Same foveation rule as URP's own intermediate passes, so this pass can merge with them
+                    var canFoveateIntermediatePasses = !Application.isMobilePlatform || UnityEngine.Experimental.Rendering.XRSystem.GetRenderViewportScale() == 1f;
+                    builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && (canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer));
+#if URP_17_3_OR_NEWER
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+#endif
+                }
+
+                builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
+                {
+                    var cmd = context.cmd;
+                    cmd.SetGlobalVector(s_propSpherePosition, data.SpherePosition);
+                    cmd.SetGlobalFloat(s_propIntensity, data.Intensity);
+                    cmd.SetGlobalVector(s_propDistanceMinMax, data.DistanceMinMax);
+                    CoreUtils.DrawFullScreen(cmd, data.Material);
+                });
+            }
+#endif
         }
 
 
