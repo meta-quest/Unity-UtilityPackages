@@ -15,8 +15,18 @@
     "versionDefines": [
         {
             "name": "com.unity.render-pipelines.universal",
-            "expression": "15.0.0",
-            "define": "URP_15_OR_NEWER"
+            "expression": "14.0.0",
+            "define": "URP_14_OR_NEWER"
+        },
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "17.0.0",
+            "define": "URP_17_OR_NEWER"
+        },
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "17.3.0",
+            "define": "URP_17_3_OR_NEWER"
         }
     ],
     "noEngineReferences": false

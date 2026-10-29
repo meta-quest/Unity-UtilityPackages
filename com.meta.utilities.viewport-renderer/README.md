@@ -26,6 +26,8 @@ A screen rect is then calculated for each eye based on the bounds of the lens me
 
 Fog density is adjusted by overwriting the FogParams vector, and control is passed to the base DrawObjectsPass to render the game scene, before restoring everything to its initial state.
 
+With Render Graph (URP 17 and newer), the pass records the same steps as a single raster pass on the camera color and depth: the lens mesh, the adjusted viewport, fog and matrices, the objects (drawn from a renderer list with the stencil test), the restore, then the overlay. Keeping it to one pass lets URP merge it with the camera's main render pass. Without Render Graph (Compatibility Mode), the original `Execute` path is used; on URP 17.3 and newer it needs the `URP_COMPATIBILITY_MODE` define.
+
 
 ## Components details
 
